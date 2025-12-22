@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geez Alphabet Games - Choose Your Adventure</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: white;
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #FFD700;
+            font-size: 1.5rem;
+            margin-bottom: 3rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .game-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .game-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .game-icon {
+            font-size: 4rem;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .game-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .game-description {
+            color: #666;
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .game-features {
+            list-style: none;
+            padding-left: 0;
+            margin-bottom: 1.5rem;
+        }
+
+        .game-features li {
+            padding: 0.5rem 0;
+            color: #555;
+            font-size: 0.95rem;
+        }
+
+        .game-features li:before {
+            content: "✓ ";
+            color: #4CAF50;
+            font-weight: bold;
+            margin-right: 0.5rem;
+        }
+
+        .play-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .play-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 3rem;
+            font-size: 1rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .subtitle {
+                font-size: 1.2rem;
+            }
+
+            .games-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 Geez Alphabet Games 🎮</h1>
+        <p class="subtitle">Choose Your Learning Adventure!</p>
+
+        <div class="games-grid">
+            <!-- Game 1: Geez Alphabet Game -->
+            <a href="geez_alphabet_game_js/index.html" class="game-card">
+                <div class="game-icon">📚</div>
+                <h2 class="game-title">Geez Alphabet Learning</h2>
+                <p class="game-description">
+                    Learn the Geez alphabet through interactive word translation and letter recognition.
+                </p>
+                <ul class="game-features">
+                    <li>Word translation challenges</li>
+                    <li>Letter-by-letter pronunciation</li>
+                    <li>Visual word associations</li>
+                    <li>Progress tracking system</li>
+                </ul>
+                <button class="play-button">Start Learning →</button>
+            </a>
+
+            <!-- Game 2: Mario-like Platformer -->
+            <a href="Alphabet_platformer_mario_like_js/index.html" class="game-card">
+                <div class="game-icon">🏃‍♂️</div>
+                <h2 class="game-title">Alphabet Platformer</h2>
+                <p class="game-description">
+                    Classic platformer action with alphabet collection mechanics and adventure elements.
+                </p>
+                <ul class="game-features">
+                    <li>Mario-style platforming</li>
+                    <li>Letter collection gameplay</li>
+                    <li>Multiple stages and levels</li>
+                    <li>Jump and run mechanics</li>
+                </ul>
+                <button class="play-button">Play Now →</button>
+            </a>
+
+            <!-- Game 3: Combined Geez Platformer Tutorial -->
+            <a href="geez_alphabet_platformer_combined_tutorial/index.html" class="game-card">
+                <div class="game-icon">💡</div>
+                <h2 class="game-title">Geez Platformer - Tutorial Mode</h2>
+                <p class="game-description">
+                    Perfect for beginners! Visual hints show you which letter to collect next with glowing animations.
+                </p>
+                <ul class="game-features">
+                    <li>Next letter hints (glowing & pulsing)</li>
+                    <li>Platformer + Educational content</li>
+                    <li>Image-word associations</li>
+                    <li>Beginner-friendly guidance</li>
+                </ul>
+                <button class="play-button">Start Tutorial →</button>
+            </a>
+
+            <!-- Game 4: Combined Geez Platformer -->
+            <a href="geez_alphabet_platformer_combined/index.html" class="game-card">
+                <div class="game-icon">🌟</div>
+                <h2 class="game-title">Geez Platformer Adventure</h2>
+                <p class="game-description">
+                    The ultimate combination! Learn Geez alphabet while playing an exciting platformer game.
+                </p>
+                <ul class="game-features">
+                    <li>Platformer + Educational content</li>
+                    <li>Image-word associations</li>
+                    <li>Randomized letter challenges</li>
+                    <li>Progressive difficulty stages</li>
+                    <li>Enemy avoidance mechanics</li>
+                </ul>
+                <button class="play-button">Play Now →</button>
+            </a>
+
+            <!-- Game 5: Geez Alphabet Derder - Drag & Drop -->
+            <a href="geez_alphabet_derder/index.html" class="game-card">
+                <div class="game-icon">🎯</div>
+                <h2 class="game-title">Geez Alphabet Derder</h2>
+                <p class="game-description">
+                    Drag and drop letters to spell words in the correct order. Perfect for learning letter sequences!
+                </p>
+                <ul class="game-features">
+                    <li>Intuitive drag & drop mechanics</li>
+                    <li>Visual feedback (green/red slots)</li>
+                    <li>Touch-friendly for tablets</li>
+                    <li>Letter pronunciation on placement</li>
+                    <li>Progressive difficulty levels</li>
+                </ul>
+                <button class="play-button">Start Spelling →</button>
+            </a>
+        </div>
+
+        <div class="footer">
+            <p>🎓 Learn Geez Alphabet Through Fun and Interactive Games! 🎓</p>
+            <p style="margin-top: 1rem; opacity: 0.8;">© 2025 Geez Alphabet Games - Educational Gaming Experience</p>
+        </div>
+    </div>
+</body>
+</html>

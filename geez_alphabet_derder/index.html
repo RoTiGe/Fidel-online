@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#667eea">
+    <meta property="og:title" content="Geez Alphabet Derder - Fidel Games">
+    <meta property="og:description" content="Drag and drop letters to spell words in the correct order">
+    <meta property="og:image" content="../../assets/derder-thumbnail.png">
+    <title>🎯 Geez Alphabet Derder - Fidel Games</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --success-color: #6BCF7F;
+            --warning-color: #FFD93D;
+            --danger-color: #FF6B35;
+            --safe-area-inset-top: env(safe-area-inset-top, 0);
+            --safe-area-inset-bottom: env(safe-area-inset-bottom, 0);
+        }
+
+        body {
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        #gameContainer {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        #gameCanvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            max-width: 100vw;
+            max-height: 100vh;
+            touch-action: none;
+        }
+
+        /* HUD Overlay */
+        .hud-overlay {
+            position: fixed;
+            top: var(--safe-area-inset-top);
+            left: 0;
+            right: 0;
+            padding: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(5px);
+        }
+
+        .home-button, .undo-button, .timer-button {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .home-button:hover, .undo-button:hover, .timer-button:hover {
+            transform: translateY(-2px);
+        }
+
+        .undo-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Stats Panel */
+        .stats-panel {
+            position: fixed;
+            top: calc(var(--safe-area-inset-top) + 50px);
+            left: 12px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            color: var(--primary-color);
+            font-weight: bold;
+            z-index: 99;
+        }
+
+        .timer-display {
+            position: fixed;
+            top: calc(var(--safe-area-inset-top) + 50px);
+            right: 12px;
+            background: rgba(255, 215, 0, 0.95);
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #333;
+            font-weight: bold;
+            z-index: 99;
+        }
+        
+        .instructions-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+            padding: 20px;
+            padding-top: var(--safe-area-inset-top);
+            padding-bottom: var(--safe-area-inset-bottom);
+        }
+
+        .instructions-content {
+            background: linear-gradient(135deg, #FFFFFF 0%, #FFF9E6 100%);
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 600px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            border: 4px solid #FF6B9D;
+        }
+
+        .instructions-content h2 {
+            color: #FF6B9D;
+            font-size: 28px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .instructions-content p {
+            color: #2C3E50;
+            line-height: 1.8;
+            margin: 10px 0;
+            font-size: 16px;
+        }
+
+        .instructions-content ul {
+            margin-left: 20px;
+            color: #2C3E50;
+        }
+
+        .instructions-content li {
+            margin: 8px 0;
+            font-size: 15px;
+        }
+
+        .difficulty-level {
+            display: inline-block;
+            background: var(--warning-color);
+            color: #333;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            margin: 0 4px;
+        }
+
+        .continue-button {
+            background: linear-gradient(135deg, var(--success-color) 0%, #45a049 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 30px;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            display: block;
+            margin: 20px auto 0;
+            box-shadow: 0 5px 20px rgba(107, 207, 127, 0.4);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .continue-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(107, 207, 127, 0.6);
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        @media (max-width: 768px) {
+            .instructions-content {
+                padding: 20px;
+                max-width: 95%;
+            }
+            
+            .instructions-content h2 {
+                font-size: 22px;
+            }
+            
+            .instructions-content p,
+            .instructions-content li {
+                font-size: 14px;
+            }
+            
+            .continue-button {
+                padding: 12px 30px;
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <!-- HUD Overlay -->
+        <div class="hud-overlay">
+            <a href="/" target="_top" class="home-button" aria-label="Return to home">🏠 Home</a>
+            <button class="undo-button" id="undoButton" aria-label="Undo last placement" title="Undo last placement">↶ Undo</button>
+            <button class="timer-button" id="timerToggle" aria-label="Toggle timer" title="Toggle timer">⏱ Timer</button>
+        </div>
+
+        <!-- Stats Panel -->
+        <div class="stats-panel" id="statsPanel">
+            <div>Stage <span id="currentStage">1</span>/5</div>
+            <div>Words: <span id="wordsCompleted">0</span>/3</div>
+        </div>
+
+        <!-- Timer Display -->
+        <div class="timer-display" id="timerDisplay" style="display: none;">⏱ <span id="timerValue">0:00</span></div>
+
+        <!-- Game Canvas -->
+        <canvas id="gameCanvas"></canvas>
+    </div>
+
+    <!-- Instructions Modal -->
+    <div id="instructionsModal" class="instructions-modal">
+        <div class="instructions-content">
+            <h2>🎯 Geez Alphabet Derder</h2>
+            <p>Drag and drop letters to spell words in the correct order. Perfect for learning letter sequences!</p>
+
+            <p style="margin-top: 15px;"><strong>How to Play:</strong></p>
+            <ul>
+                <li>🎯 Letters appear randomly at the top</li>
+                <li>🖱️ Click/tap and drag letters to drop zones</li>
+                <li>📝 Place them in the correct order</li>
+                <li>✅ Green slots = correct, ❌ Red slots = wrong</li>
+                <li>📢 Each letter pronounces when placed</li>
+                <li>🎉 Complete 3 words per stage to advance</li>
+            </ul>
+
+            <p style="margin-top: 15px;"><strong>Difficulty Levels:</strong></p>
+            <ul>
+                <li><span class="difficulty-level">Stage 1</span> Learning - 2-3 letter words</li>
+                <li><span class="difficulty-level">Stage 2</span> Practice - 3-4 letter words</li>
+                <li><span class="difficulty-level">Stage 3</span> Master - 4-5 letter words</li>
+                <li><span class="difficulty-level">Stage 4</span> Expert - 5-6 letter words</li>
+                <li><span class="difficulty-level">Stage 5</span> Champion - 6+ letter words</li>
+            </ul>
+
+            <p style="margin-top: 15px;"><strong>Features:</strong></p>
+            <ul>
+                <li>🔄 Undo button to rearrange letters</li>
+                <li>⏱ Optional timer for timed challenges</li>
+                <li>📊 Track your progress and accuracy</li>
+                <li>🎓 Learn letter sequences and word formation</li>
+            </ul>
+
+            <p style="margin-top: 15px; color: #FF6B35; font-weight: bold;">💡 Tip: You can click on placed letters to remove and rearrange them!</p>
+
+            <button class="continue-button" onclick="startGame()">Let's Play! 🚀</button>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+    <script>
+        // gameStarted is already declared in game.js
+        // startGame is already defined in game.js
+        let timerEnabled = false;
+        let timerInterval = null;
+        let seconds = 0;
+
+        // Wait for DOM to be fully loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            const undoButton = document.getElementById('undoButton');
+            const timerToggle = document.getElementById('timerToggle');
+            const timerDisplay = document.getElementById('timerDisplay');
+
+            if (undoButton) {
+                undoButton.addEventListener('click', () => {
+                    // Trigger undo in game.js
+                    if (window.undoLastPlacement) {
+                        window.undoLastPlacement();
+                    }
+                });
+            }
+
+            if (timerToggle && timerDisplay) {
+                timerToggle.addEventListener('click', () => {
+                    timerEnabled = !timerEnabled;
+                    timerDisplay.style.display = timerEnabled ? 'block' : 'none';
+
+                    if (timerEnabled) {
+                        seconds = 0;
+                        timerInterval = setInterval(() => {
+                            seconds++;
+                            const mins = Math.floor(seconds / 60);
+                            const secs = seconds % 60;
+                            document.getElementById('timerValue').textContent =
+                                mins + ':' + (secs < 10 ? '0' : '') + secs;
+                        }, 1000);
+                    } else {
+                        clearInterval(timerInterval);
+                    }
+                });
+            }
+        });
+
+        function updateProgress(stage, wordsCompleted) {
+            document.getElementById('currentStage').textContent = stage;
+            document.getElementById('wordsCompleted').textContent = wordsCompleted;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Debug Console</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Courier New', monospace;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .header {
+            background: #252526;
+            padding: 10px 20px;
+            border-bottom: 1px solid #3c3c3c;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            font-size: 16px;
+            color: #4ec9b0;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+        }
+        .controls button {
+            background: #0e639c;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .controls button:hover {
+            background: #1177bb;
+        }
+        .controls button.clear {
+            background: #c5c5c5;
+            color: #333;
+        }
+        .controls button.clear:hover {
+            background: #e0e0e0;
+        }
+        .game-frame-container {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+        .game-frame {
+            flex: 1;
+            border: none;
+            background: white;
+        }
+        .debug-panel {
+            width: 400px;
+            background: #252526;
+            border-left: 1px solid #3c3c3c;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .tabs {
+            display: flex;
+            background: #2d2d30;
+            border-bottom: 1px solid #3c3c3c;
+        }
+        .tab {
+            padding: 8px 16px;
+            cursor: pointer;
+            border-right: 1px solid #3c3c3c;
+            font-size: 12px;
+        }
+        .tab:hover {
+            background: #37373d;
+        }
+        .tab.active {
+            background: #1e1e1e;
+            color: #4ec9b0;
+        }
+        .console-output {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+        .log-entry {
+            padding: 4px 0;
+            border-bottom: 1px solid #2d2d30;
+        }
+        .log-entry.error { color: #f48771; }
+        .log-entry.warn { color: #dcdcaa; }
+        .log-entry.info { color: #4fc1ff; }
+        .log-entry.success { color: #4ec9b0; }
+        .timestamp {
+            color: #858585;
+            margin-right: 8px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            padding: 10px;
+        }
+        .stat-box {
+            background: #1e1e1e;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #3c3c3c;
+        }
+        .stat-label {
+            font-size: 10px;
+            color: #858585;
+            margin-bottom: 4px;
+        }
+        .stat-value {
+            font-size: 18px;
+            color: #4ec9b0;
+            font-weight: bold;
+        }
+        .input-section {
+            background: #2d2d30;
+            border-top: 1px solid #3c3c3c;
+            padding: 10px;
+        }
+        .input-section input {
+            width: 100%;
+            background: #3c3c3c;
+            border: 1px solid #555;
+            color: #d4d4d4;
+            padding: 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+        .test-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 5px;
+            padding: 10px;
+        }
+        .test-buttons button {
+            background: #37373d;
+            color: #d4d4d4;
+            border: 1px solid #555;
+            padding: 8px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+        .test-buttons button:hover {
+            background: #4e4e4e;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🐛 Game Debug Console</h1>
+        <div class="controls">
+            <select id="gameSelect" onchange="loadGame()">
+                <option value="">Select Game...</option>
+                <option value="geez_alphabet_game_js/index.html">Alphabet Learning</option>
+                <option value="geez_alphabet_derder/index.html">Derder (Drag & Drop)</option>
+                <option value="geez_alphabet_platformer_combined/index.html">Platformer</option>
+                <option value="geez_alphabet_platformer_combined_tutorial/index.html">Platformer Tutorial</option>
+            </select>
+            <button onclick="reloadGame()">🔄 Reload</button>
+            <button class="clear" onclick="clearConsole()">🗑️ Clear</button>
+        </div>
+    </div>
+
+    <div class="game-frame-container">
+        <iframe id="gameFrame" class="game-frame"></iframe>
+        
+        <div class="debug-panel">
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('console')">Console</div>
+                <div class="tab" onclick="switchTab('stats')">Stats</div>
+                <div class="tab" onclick="switchTab('tests')">Tests</div>
+            </div>
+
+            <div id="consoleTab" class="console-output"></div>
+
+            <div id="statsTab" class="stats-grid" style="display: none;">
+                <div class="stat-box">
+                    <div class="stat-label">FPS</div>
+                    <div class="stat-value" id="fps">--</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Memory (MB)</div>
+                    <div class="stat-value" id="memory">--</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Canvas Width</div>
+                    <div class="stat-value" id="canvasWidth">--</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Canvas Height</div>
+                    <div class="stat-value" id="canvasHeight">--</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Touch Points</div>
+                    <div class="stat-value" id="touchPoints">--</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Device Pixel Ratio</div>
+                    <div class="stat-value" id="dpr">--</div>
+                </div>
+            </div>
+
+            <div id="testsTab" class="test-buttons" style="display: none;">
+                <button onclick="testTouchEvents()">Test Touch Events</button>
+                <button onclick="testSpeechSynthesis()">Test Speech</button>
+                <button onclick="testCanvasRendering()">Test Canvas</button>
+                <button onclick="testResponsive()">Test Responsive</button>
+                <button onclick="testLocalStorage()">Test Storage</button>
+                <button onclick="testPerformance()">Test Performance</button>
+            </div>
+
+            <div class="input-section">
+                <input type="text" id="commandInput" placeholder="Enter command or JavaScript..." 
+                       onkeypress="handleCommand(event)">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let frameWindow = null;
+        let logCount = 0;
+
+        function loadGame() {
+            const select = document.getElementById('gameSelect');
+            const gameFrame = document.getElementById('gameFrame');
+            gameFrame.src = select.value;
+            log('info', `Loading game: ${select.value}`);
+            
+            gameFrame.onload = () => {
+                frameWindow = gameFrame.contentWindow;
+                log('success', 'Game loaded successfully');
+                interceptConsoleLogs();
+                startMonitoring();
+            };
+        }
+
+        function reloadGame() {
+            const gameFrame = document.getElementById('gameFrame');
+            if (gameFrame.src) {
+                gameFrame.src = gameFrame.src;
+                log('info', 'Reloading game...');
+            }
+        }
+
+        function clearConsole() {
+            document.getElementById('consoleTab').innerHTML = '';
+            logCount = 0;
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            document.getElementById('consoleTab').style.display = 'none';
+            document.getElementById('statsTab').style.display = 'none';
+            document.getElementById('testsTab').style.display = 'none';
+            
+            document.getElementById(tabName + 'Tab').style.display = tabName === 'console' ? 'block' : 'grid';
+        }
+
+        function log(type, message) {
+            const consoleOutput = document.getElementById('consoleTab');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            
+            const timestamp = new Date().toLocaleTimeString();
+            const icon = {
+                'error': '❌',
+                'warn': '⚠️',
+                'info': 'ℹ️',
+                'success': '✅'
+            }[type] || '📝';
+            
+            entry.innerHTML = `<span class="timestamp">[${timestamp}]</span>${icon} ${message}`;
+            consoleOutput.appendChild(entry);
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+            logCount++;
+        }
+
+        function interceptConsoleLogs() {
+            if (!frameWindow) return;
+
+            const originalConsole = {
+                log: frameWindow.console.log,
+                error: frameWindow.console.error,
+                warn: frameWindow.console.warn,
+                info: frameWindow.console.info
+            };
+
+            frameWindow.console.log = function(...args) {
+                log('info', args.join(' '));
+                originalConsole.log.apply(frameWindow.console, args);
+            };
+
+            frameWindow.console.error = function(...args) {
+                log('error', args.join(' '));
+                originalConsole.error.apply(frameWindow.console, args);
+            };
+
+            frameWindow.console.warn = function(...args) {
+                log('warn', args.join(' '));
+                originalConsole.warn.apply(frameWindow.console, args);
+            };
+
+            frameWindow.addEventListener('error', (e) => {
+                log('error', `${e.message} at ${e.filename}:${e.lineno}`);
+            });
+        }
+
+        function startMonitoring() {
+            setInterval(() => {
+                updateStats();
+            }, 1000);
+        }
+
+        function updateStats() {
+            if (!frameWindow) return;
+
+            // FPS calculation
+            let lastTime = performance.now();
+            let frames = 0;
+            requestAnimationFrame(function measureFPS() {
+                frames++;
+                const currentTime = performance.now();
+                if (currentTime >= lastTime + 1000) {
+                    document.getElementById('fps').textContent = frames;
+                    frames = 0;
+                    lastTime = currentTime;
+                }
+                requestAnimationFrame(measureFPS);
+            });
+
+            // Memory
+            if (performance.memory) {
+                const memory = (performance.memory.usedJSHeapSize / 1048576).toFixed(2);
+                document.getElementById('memory').textContent = memory;
+            }
+
+            // Canvas dimensions
+            try {
+                const canvas = frameWindow.document.querySelector('canvas');
+                if (canvas) {
+                    document.getElementById('canvasWidth').textContent = canvas.width;
+                    document.getElementById('canvasHeight').textContent = canvas.height;
+                }
+            } catch (e) {}
+
+            // Touch points
+            document.getElementById('touchPoints').textContent = navigator.maxTouchPoints || 0;
+            document.getElementById('dpr').textContent = window.devicePixelRatio.toFixed(2);
+        }
+
+        function handleCommand(event) {
+            if (event.key === 'Enter') {
+                const input = event.target;
+                const command = input.value.trim();
+                
+                if (!command) return;
+                
+                log('info', `> ${command}`);
+                
+                try {
+                    if (frameWindow) {
+                        const result = frameWindow.eval(command);
+                        log('success', `Result: ${JSON.stringify(result)}`);
+                    } else {
+                        log('error', 'No game loaded');
+                    }
+                } catch (e) {
+                    log('error', e.message);
+                }
+                
+                input.value = '';
+            }
+        }
+
+        // Test functions
+        function testTouchEvents() {
+            log('info', 'Testing touch events...');
+            log('info', `Touch support: ${'ontouchstart' in window}`);
+            log('info', `Max touch points: ${navigator.maxTouchPoints}`);
+            log('info', `Pointer events: ${'PointerEvent' in window}`);
+        }
+
+        function testSpeechSynthesis() {
+            log('info', 'Testing speech synthesis...');
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance('Test');
+                speechSynthesis.speak(utterance);
+                log('success', 'Speech synthesis working');
+            } else {
+                log('error', 'Speech synthesis not supported');
+            }
+        }
+
+        function testCanvasRendering() {
+            log('info', 'Testing canvas rendering...');
+            try {
+                const canvas = frameWindow.document.querySelector('canvas');
+                if (canvas) {
+                    const ctx = canvas.getContext('2d');
+                    log('success', `Canvas found: ${canvas.width}x${canvas.height}`);
+                    log('info', `Context type: ${ctx.constructor.name}`);
+                } else {
+                    log('warn', 'No canvas element found');
+                }
+            } catch (e) {
+                log('error', e.message);
+            }
+        }
+
+        function testResponsive() {
+            log('info', 'Testing responsive design...');
+            log('info', `Window size: ${window.innerWidth}x${window.innerHeight}`);
+            log('info', `Screen size: ${screen.width}x${screen.height}`);
+            log('info', `Orientation: ${screen.orientation?.type || 'unknown'}`);
+        }
+
+        function testLocalStorage() {
+            log('info', 'Testing localStorage...');
+            try {
+                localStorage.setItem('test', 'value');
+                const value = localStorage.getItem('test');
+                localStorage.removeItem('test');
+                log('success', `localStorage working: ${value}`);
+            } catch (e) {
+                log('error', `localStorage failed: ${e.message}`);
+            }
+        }
+
+        function testPerformance() {
+            log('info', 'Running performance tests...');
+            const start = performance.now();
+            
+            // Simulate some work
+            for (let i = 0; i < 1000000; i++) {
+                Math.sqrt(i);
+            }
+            
+            const duration = (performance.now() - start).toFixed(2);
+            log('info', `Performance test completed in ${duration}ms`);
+            
+            if (performance.memory) {
+                log('info', `Memory: ${(performance.memory.usedJSHeapSize / 1048576).toFixed(2)} MB`);
+            }
+        }
+
+        log('info', 'Debug console initialized. Select a game to begin.');
+    </script>
+</body>
+</html>

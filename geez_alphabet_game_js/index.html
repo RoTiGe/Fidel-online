@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#FF6B9D">
+    <meta property="og:title" content="Geez Alphabet Learning Game">
+    <meta property="og:description" content="Learn the Geez alphabet through interactive word translation and letter recognition">
+    <meta property="og:image" content="../../assets/game-thumbnail.png">
+    <title>📚 Geez Alphabet Learning - Fidel Games</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #FF6B9D;
+            --secondary-color: #667eea;
+            --success-color: #6BCF7F;
+            --warning-color: #FFD93D;
+            --danger-color: #FF6B35;
+            --dark-bg: #1a1a2e;
+            --light-text: #ffffff;
+            --safe-area-inset-top: env(safe-area-inset-top, 0);
+            --safe-area-inset-bottom: env(safe-area-inset-bottom, 0);
+        }
+
+        body {
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #FF6B9D 0%, #FFA07A 25%, #FFD93D 50%, #6BCF7F 75%, #4ECDC4 100%);
+            background-size: 400% 400%;
+            animation: gradientFlow 15s ease infinite;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        @keyframes gradientFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        #gameContainer {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #gameCanvas {
+            display: block;
+            flex: 1;
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+        }
+
+        /* UI Overlay */
+        .ui-overlay {
+            position: fixed;
+            top: var(--safe-area-inset-top);
+            left: 0;
+            right: 0;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(5px);
+        }
+
+        .ui-left {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .ui-right {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .home-button, .sound-toggle, .stats-button {
+            background: linear-gradient(135deg, var(--secondary-color) 0%, #764ba2 100%);
+            color: var(--light-text);
+            border: none;
+            padding: 10px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .home-button:hover, .sound-toggle:hover, .stats-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        .sound-toggle.muted {
+            background: linear-gradient(135deg, #999 0%, #666 100%);
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            position: fixed;
+            top: calc(var(--safe-area-inset-top) + 60px);
+            left: 15px;
+            right: 15px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 12px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            z-index: 99;
+            max-width: 300px;
+        }
+
+        .progress-label {
+            font-size: 12px;
+            font-weight: bold;
+            color: var(--secondary-color);
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), var(--warning-color));
+            transition: width 0.3s ease;
+        }
+
+        /* Statistics Panel */
+        .stats-panel {
+            position: fixed;
+            bottom: var(--safe-area-inset-bottom);
+            right: 15px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            z-index: 99;
+            min-width: 150px;
+            display: none;
+        }
+
+        .stats-panel.visible {
+            display: block;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .stat-label {
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+
+        .stat-value {
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        /* Instructions Modal */
+        .instructions-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+            padding: 20px;
+            padding-top: var(--safe-area-inset-top);
+            padding-bottom: var(--safe-area-inset-bottom);
+        }
+
+        .instructions-content {
+            background: linear-gradient(135deg, #FFFFFF 0%, #FFF9E6 100%);
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 600px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            border: 4px solid var(--primary-color);
+        }
+
+        .instructions-content h2 {
+            color: var(--primary-color);
+            font-size: 28px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .instructions-content p {
+            color: #2C3E50;
+            line-height: 1.8;
+            margin: 10px 0;
+            font-size: 16px;
+        }
+
+        .instructions-content strong {
+            color: var(--secondary-color);
+        }
+
+        .difficulty-badge {
+            display: inline-block;
+            background: var(--warning-color);
+            color: #333;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            margin: 0 4px;
+        }
+
+        .continue-button {
+            background: linear-gradient(135deg, var(--success-color) 0%, #45a049 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 30px;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            display: block;
+            margin: 20px auto 0;
+            box-shadow: 0 5px 20px rgba(107, 207, 127, 0.4);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .continue-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(107, 207, 127, 0.6);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Accessibility */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* High Contrast Mode */
+        @media (prefers-contrast: more) {
+            .instructions-content {
+                border-width: 6px;
+            }
+
+            .home-button, .sound-toggle, .stats-button {
+                border: 2px solid var(--light-text);
+            }
+        }
+
+        /* Mobile Optimization */
+        @media (max-width: 768px) {
+            .progress-container {
+                top: calc(var(--safe-area-inset-top) + 50px);
+                max-width: 250px;
+                padding: 10px;
+            }
+
+            .instructions-content {
+                padding: 20px;
+                max-width: 95%;
+                border-radius: 15px;
+            }
+
+            .instructions-content h2 {
+                font-size: 22px;
+            }
+
+            .instructions-content p {
+                font-size: 14px;
+            }
+
+            .continue-button {
+                padding: 12px 30px;
+                font-size: 18px;
+            }
+
+            .ui-overlay {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            .home-button, .sound-toggle, .stats-button {
+                padding: 8px 12px;
+                font-size: 12px;
+            }
+        }
+
+        /* Tablet Optimization */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .progress-container {
+                max-width: 350px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <!-- UI Overlay -->
+        <div class="ui-overlay">
+            <div class="ui-left">
+                <a href="/" target="_top" class="home-button" aria-label="Return to home">🏠 Home</a>
+                <button class="sound-toggle" id="soundToggle" aria-label="Toggle sound" title="Toggle sound on/off">🔊</button>
+            </div>
+            <div class="ui-right">
+                <button class="stats-button" id="statsButton" aria-label="Show statistics" title="View game statistics">📊 Stats</button>
+            </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-container">
+            <div class="progress-label">
+                <span>Stage <span id="currentStage">1</span>/5</span>
+                <span id="stageProgress">0/3 words</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <!-- Statistics Panel -->
+        <div class="stats-panel" id="statsPanel">
+            <div class="stat-item">
+                <span class="stat-label">Score:</span>
+                <span class="stat-value" id="statScore">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Accuracy:</span>
+                <span class="stat-value" id="statAccuracy">0%</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Words:</span>
+                <span class="stat-value" id="statWords">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Time:</span>
+                <span class="stat-value" id="statTime">0s</span>
+            </div>
+        </div>
+
+        <!-- Game Canvas -->
+        <canvas id="gameCanvas"></canvas>
+    </div>
+
+    <!-- Instructions Modal -->
+    <div id="instructionsModal" class="instructions-modal">
+        <div class="instructions-content">
+            <h2>📚 Geez Alphabet Learning Game</h2>
+            <p>Move your mouse or finger to collect the falling Geez letters and spell the word!</p>
+
+            <p><strong>How to Play:</strong></p>
+            <ul style="margin-left: 20px; color: #2C3E50;">
+                <li>🎯 Collect letters in the correct order to spell words</li>
+                <li>🎮 Use mouse or touch to move your collection circle</li>
+                <li>📢 Hear the pronunciation of each letter</li>
+                <li>⭐ Earn points for correct sequences</li>
+            </ul>
+
+            <p style="margin-top: 15px;"><strong>Difficulty Levels:</strong></p>
+            <p><span class="difficulty-badge">Stage 1</span> Learning - Letters fall slowly. Collect in order = 1 pt. Out of order = 0.5 pts.</p>
+            <p><span class="difficulty-badge">Stage 2</span> Practice - Letters fall faster. Same scoring.</p>
+            <p><span class="difficulty-badge">Stage 3</span> Master - Must collect in correct order! Wrong order = -0.5 pts!</p>
+            <p><span class="difficulty-badge">Stage 4</span> Multi-Direction - Letters come from top, left, AND right!</p>
+            <p><span class="difficulty-badge">Stage 5</span> Diagonal Chaos - Letters fly diagonally from all edges! 🚀</p>
+
+            <p style="margin-top: 15px; color: #FF6B35; font-weight: bold;">⚠️ Complete 3 words per stage to advance. Score 0 in Stage 1 = Game Over!</p>
+
+            <button class="continue-button" onclick="startGame()">Start Learning! 🚀</button>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+    <script>
+        // startGame is already defined in game.js
+        let soundEnabled = true;
+
+        // Wait for DOM to be fully loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            const soundToggle = document.getElementById('soundToggle');
+            const statsButton = document.getElementById('statsButton');
+            const statsPanel = document.getElementById('statsPanel');
+
+            if (soundToggle) {
+                soundToggle.addEventListener('click', () => {
+                    soundEnabled = !soundEnabled;
+                    soundToggle.classList.toggle('muted');
+                    soundToggle.textContent = soundEnabled ? '🔊' : '🔇';
+                    localStorage.setItem('soundEnabled', soundEnabled);
+                });
+            }
+
+            if (statsButton && statsPanel) {
+                statsButton.addEventListener('click', () => {
+                    statsPanel.classList.toggle('visible');
+                });
+            }
+
+            // Load sound preference
+            if (localStorage.getItem('soundEnabled') === 'false') {
+                soundEnabled = false;
+                if (soundToggle) {
+                    soundToggle.classList.add('muted');
+                    soundToggle.textContent = '🔇';
+                }
+            }
+        });
+
+        // Update stats display
+        function updateStats(score, accuracy, words, time) {
+            document.getElementById('statScore').textContent = score;
+            document.getElementById('statAccuracy').textContent = accuracy + '%';
+            document.getElementById('statWords').textContent = words;
+            document.getElementById('statTime').textContent = time + 's';
+        }
+
+        // Update progress
+        function updateProgress(stage, wordsCompleted) {
+            document.getElementById('currentStage').textContent = stage;
+            document.getElementById('stageProgress').textContent = wordsCompleted + '/3 words';
+            const progressPercent = ((stage - 1) * 20 + (wordsCompleted * 6.67));
+            document.getElementById('progressFill').style.width = Math.min(progressPercent, 100) + '%';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#667eea">
+    <title>Best Practices Example - Fidel Games</title>
+    <link rel="stylesheet" href="best-practices.css">
+    <style>
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --success-color: #6BCF7F;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .info-box {
+            background: #f5f5f5;
+            border-left: 4px solid var(--primary-color);
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            flex: 1;
+            min-width: 120px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 8px;
+        }
+
+        button:hover {
+            background: var(--secondary-color);
+        }
+
+        canvas {
+            border: 2px solid var(--primary-color);
+            border-radius: 10px;
+            margin: 20px 0;
+            background: #f0f0f0;
+        }
+
+        .mobile-only {
+            display: none;
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+
+        .desktop-only {
+            display: none;
+            background: #d1ecf1;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            .mobile-only {
+                display: block;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .desktop-only {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 Best Practices Example</h1>
+
+        <div class="info-box">
+            <strong>Device Type:</strong>
+            <p id="deviceType">Detecting...</p>
+        </div>
+
+        <div class="info-box">
+            <strong>Screen Size:</strong>
+            <p id="screenSize">Detecting...</p>
+        </div>
+
+        <div class="info-box">
+            <strong>Breakpoint:</strong>
+            <p id="breakpoint">Detecting...</p>
+        </div>
+
+        <div class="mobile-only">
+            <strong>📱 Mobile Device Detected!</strong>
+            <p>Touch-friendly controls are enabled.</p>
+        </div>
+
+        <div class="desktop-only">
+            <strong>🖥️ Desktop Device Detected!</strong>
+            <p>Keyboard controls are available.</p>
+        </div>
+
+        <canvas id="gameCanvas" width="400" height="300"></canvas>
+
+        <div class="controls">
+            <button onclick="detectDevice()">🔄 Refresh</button>
+            <button onclick="drawOnCanvas()">🎨 Draw</button>
+        </div>
+    </div>
+
+    <script src="device-detection.js"></script>
+    <script src="responsive-canvas.js"></script>
+    <script>
+        // Initialize responsive canvas
+        const canvas = document.getElementById('gameCanvas');
+        ResponsiveCanvas.init(canvas, {
+            maxWidth: 600,
+            maxHeight: 400,
+            maintainAspectRatio: true,
+            aspectRatio: 4 / 3
+        });
+
+        // Detect device on load
+        function detectDevice() {
+            const info = DeviceDetection.getDeviceInfo();
+            
+            document.getElementById('deviceType').textContent = 
+                `${info.type.toUpperCase()} ${info.hasTouch ? '(Touch)' : '(No Touch)'}`;
+            
+            document.getElementById('screenSize').textContent = 
+                `${info.screen.width}x${info.screen.height}px (DPR: ${info.screen.dpr})`;
+            
+            document.getElementById('breakpoint').textContent = 
+                `${info.breakpoint.toUpperCase()} - ${info.orientation.toUpperCase()}`;
+
+            console.log('Device Info:', info);
+        }
+
+        // Draw on canvas
+        function drawOnCanvas() {
+            const dims = ResponsiveCanvas.getDimensions();
+            const ctx = canvas.getContext('2d');
+
+            ResponsiveCanvas.clear();
+
+            // Draw background
+            ctx.fillStyle = '#667eea';
+            ctx.fillRect(0, 0, dims.width, dims.height);
+
+            // Draw text
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 20px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Canvas: ' + dims.width + 'x' + dims.height, dims.width / 2, dims.height / 2);
+
+            // Draw circle
+            ctx.fillStyle = '#FFD93D';
+            ctx.beginPath();
+            ctx.arc(dims.width / 2, dims.height / 2 + 40, 30, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Run on load and resize
+        window.addEventListener('load', detectDevice);
+        window.addEventListener('resize', detectDevice);
+        window.addEventListener('orientationchange', detectDevice);
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#667eea">
+    <meta property="og:title" content="Alphabet Platformer - Fidel Games">
+    <meta property="og:description" content="Classic platformer action with alphabet collection mechanics">
+    <meta property="og:image" content="../../assets/platformer-thumbnail.png">
+    <title>🏃 Alphabet Platformer - Fidel Games</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --success-color: #6BCF7F;
+            --warning-color: #FFD93D;
+            --danger-color: #FF6B35;
+            --dark-bg: #1a1a2e;
+            --light-text: #ffffff;
+            --safe-area-inset-top: env(safe-area-inset-top, 0);
+            --safe-area-inset-bottom: env(safe-area-inset-bottom, 0);
+        }
+
+        body {
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: var(--dark-bg);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: none;
+        }
+
+        #gameContainer {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #gameCanvas {
+            display: block;
+            flex: 1;
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+        }
+
+        /* HUD Overlay */
+        .hud-overlay {
+            position: fixed;
+            top: var(--safe-area-inset-top);
+            left: 0;
+            right: 0;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(5px);
+        }
+
+        .hud-left, .hud-right {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .home-button, .pause-button, .leaderboard-button {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: var(--light-text);
+            border: none;
+            padding: 10px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .home-button:hover, .pause-button:hover, .leaderboard-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        /* Level Info */
+        .level-info {
+            position: fixed;
+            top: calc(var(--safe-area-inset-top) + 60px);
+            left: 15px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 12px 16px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            z-index: 99;
+            min-width: 200px;
+        }
+
+        .level-name {
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 6px;
+        }
+
+        .level-progress {
+            font-size: 12px;
+            color: #666;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* Score Display */
+        .score-display {
+            position: fixed;
+            top: calc(var(--safe-area-inset-top) + 60px);
+            right: 15px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 12px 16px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            z-index: 99;
+            text-align: right;
+        }
+
+        .score-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .score-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--warning-color);
+        }
+
+        /* Mobile Controls */
+        .mobile-controls {
+            position: fixed;
+            bottom: var(--safe-area-inset-bottom);
+            left: 0;
+            right: 0;
+            padding: 15px;
+            display: none;
+            gap: 10px;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(5px);
+        }
+
+        .mobile-controls.visible {
+            display: flex;
+        }
+
+        .control-button {
+            flex: 1;
+            padding: 15px;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: var(--light-text);
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            transition: transform 0.1s ease;
+        }
+
+        .control-button:active {
+            transform: scale(0.95);
+        }
+
+        /* Pause Menu */
+        .pause-menu {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            padding: 20px;
+        }
+
+        .pause-menu.visible {
+            display: flex;
+        }
+
+        .pause-content {
+            background: linear-gradient(135deg, #FFFFFF 0%, #FFF9E6 100%);
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            border: 4px solid var(--primary-color);
+        }
+
+        .pause-content h2 {
+            color: var(--primary-color);
+            font-size: 32px;
+            margin-bottom: 20px;
+        }
+
+        .pause-buttons {
+            display: flex;
+            gap: 10px;
+            flex-direction: column;
+            margin-top: 20px;
+        }
+
+        .pause-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .pause-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .resume-btn {
+            background: linear-gradient(135deg, var(--success-color) 0%, #45a049 100%);
+            color: white;
+        }
+
+        .settings-btn {
+            background: linear-gradient(135deg, var(--warning-color) 0%, #FFA500 100%);
+            color: #333;
+        }
+
+        .quit-btn {
+            background: linear-gradient(135deg, var(--danger-color) 0%, #FF4500 100%);
+            color: white;
+        }
+
+        /* Instructions Modal */
+        .instructions-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+            padding: 20px;
+            padding-top: var(--safe-area-inset-top);
+            padding-bottom: var(--safe-area-inset-bottom);
+        }
+
+        .instructions-content {
+            background: linear-gradient(135deg, #FFFFFF 0%, #FFF9E6 100%);
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 600px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            border: 4px solid var(--primary-color);
+        }
+
+        .instructions-content h2 {
+            color: var(--primary-color);
+            font-size: 28px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .instructions-content p {
+            color: #2C3E50;
+            line-height: 1.8;
+            margin: 10px 0;
+            font-size: 16px;
+        }
+
+        .instructions-content ul {
+            margin-left: 20px;
+            color: #2C3E50;
+        }
+
+        .instructions-content li {
+            margin: 8px 0;
+        }
+
+        .continue-button {
+            background: linear-gradient(135deg, var(--success-color) 0%, #45a049 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 30px;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            display: block;
+            margin: 20px auto 0;
+            box-shadow: 0 5px 20px rgba(107, 207, 127, 0.4);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .continue-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(107, 207, 127, 0.6);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Accessibility */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* Mobile Optimization */
+        @media (max-width: 768px) {
+            .level-info {
+                top: calc(var(--safe-area-inset-top) + 50px);
+                min-width: 180px;
+                padding: 10px 12px;
+                font-size: 12px;
+            }
+
+            .score-display {
+                top: calc(var(--safe-area-inset-top) + 50px);
+                padding: 10px 12px;
+            }
+
+            .score-value {
+                font-size: 20px;
+            }
+
+            .mobile-controls.visible {
+                display: flex;
+            }
+
+            .instructions-content {
+                padding: 20px;
+                max-width: 95%;
+            }
+
+            .instructions-content h2 {
+                font-size: 22px;
+            }
+
+            .instructions-content p {
+                font-size: 14px;
+            }
+
+            .continue-button {
+                padding: 12px 30px;
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <!-- HUD Overlay -->
+        <div class="hud-overlay">
+            <div class="hud-left">
+                <a href="/" target="_top" class="home-button" aria-label="Return to home">🏠 Home</a>
+                <button class="pause-button" id="pauseButton" aria-label="Pause game" title="Pause the game">⏸ Pause</button>
+            </div>
+            <div class="hud-right">
+                <button class="leaderboard-button" id="leaderboardButton" aria-label="View leaderboard" title="View high scores">🏆 Scores</button>
+            </div>
+        </div>
+
+        <!-- Level Info -->
+        <div class="level-info">
+            <div class="level-name" id="levelName">Stage 1: Morning Sky</div>
+            <div class="level-progress">
+                <span>Letters: <span id="letterCount">0</span>/7</span>
+                <span id="difficulty">Easy</span>
+            </div>
+        </div>
+
+        <!-- Score Display -->
+        <div class="score-display">
+            <div class="score-label">Score</div>
+            <div class="score-value" id="scoreValue">0</div>
+        </div>
+
+        <!-- Game Canvas -->
+        <canvas id="gameCanvas"></canvas>
+
+        <!-- Mobile Controls -->
+        <div class="mobile-controls" id="mobileControls">
+            <button class="control-button" id="leftBtn" aria-label="Move left">⬅ Left</button>
+            <button class="control-button" id="jumpBtn" aria-label="Jump">⬆ Jump</button>
+            <button class="control-button" id="rightBtn" aria-label="Move right">➡ Right</button>
+        </div>
+    </div>
+
+    <!-- Pause Menu -->
+    <div class="pause-menu" id="pauseMenu">
+        <div class="pause-content">
+            <h2>⏸ Game Paused</h2>
+            <div class="pause-buttons">
+                <button class="pause-btn resume-btn" onclick="resumeGame()">Resume Game</button>
+                <button class="pause-btn settings-btn" onclick="openSettings()">⚙️ Settings</button>
+                <button class="pause-btn quit-btn" onclick="quitGame()">Quit to Menu</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Instructions Modal -->
+    <div id="instructionsModal" class="instructions-modal">
+        <div class="instructions-content">
+            <h2>🏃‍♂️ Alphabet Platformer</h2>
+            <p>Jump and run through levels collecting Geez alphabet letters!</p>
+
+            <p><strong>How to Play:</strong></p>
+            <ul>
+                <li>🎯 Collect all letters in each stage</li>
+                <li>⭐ Avoid enemies and obstacles</li>
+                <li>🚪 Reach the portal to advance</li>
+                <li>📈 Progress through 5 stages per batch</li>
+            </ul>
+
+            <p style="margin-top: 15px;"><strong>Controls:</strong></p>
+            <ul>
+                <li>⌨️ <strong>Desktop:</strong> Arrow Keys or A/D to move, Space or ↑ to jump</li>
+                <li>📱 <strong>Mobile:</strong> Use on-screen buttons for movement and jumping</li>
+                <li>⏸ <strong>Pause:</strong> Click the Pause button anytime</li>
+            </ul>
+
+            <p style="margin-top: 15px; color: #FF6B35; font-weight: bold;">💡 Tip: Collect letters in order for bonus points!</p>
+
+            <button class="continue-button" onclick="startGame()">Play Now! 🎮</button>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+    <script>
+        // Game State
+        let gamePaused = false;
+        // gameStarted is already declared in game.js
+        // startGame is already declared in game.js
+
+        // Wait for DOM to be fully loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            // UI Controls
+            const pauseButton = document.getElementById('pauseButton');
+            const pauseMenu = document.getElementById('pauseMenu');
+            const leaderboardButton = document.getElementById('leaderboardButton');
+            const mobileControls = document.getElementById('mobileControls');
+
+            // Detect mobile
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            if (isMobile && mobileControls) {
+                mobileControls.classList.add('visible');
+            }
+
+            if (pauseButton && pauseMenu) {
+                pauseButton.addEventListener('click', () => {
+                    gamePaused = !gamePaused;
+                    pauseMenu.classList.toggle('visible');
+                });
+            }
+
+            if (leaderboardButton) {
+                leaderboardButton.addEventListener('click', () => {
+                    alert('🏆 High Scores\n\n1. Player 1: 1500 pts\n2. Player 2: 1200 pts\n3. Player 3: 950 pts');
+                });
+            }
+        });
+
+        function resumeGame() {
+            const pauseMenu = document.getElementById('pauseMenu');
+            gamePaused = false;
+            if (pauseMenu) {
+                pauseMenu.classList.remove('visible');
+            }
+        }
+
+        function openSettings() {
+            alert('⚙️ Settings\n\nSound: On\nDifficulty: Normal\nControls: Standard');
+        }
+
+        function quitGame() {
+            window.top.location.href = '/';
+        }
+
+        // Update HUD
+        function updateHUD(score, letters, total) {
+            document.getElementById('scoreValue').textContent = score;
+            document.getElementById('letterCount').textContent = letters;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#667eea">
+    <meta property="og:title" content="Geez Platformer Adventure - Fidel Games">
+    <meta property="og:description" content="The ultimate combination! Learn Geez alphabet while playing an exciting platformer game">
+    <meta property="og:image" content="../../assets/adventure-thumbnail.png">
+    <title>🌟 Geez Platformer Adventure - Fidel Games</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #667eea;
+            --success-color: #6BCF7F;
+            --warning-color: #FFD93D;
+            --danger-color: #FF6B35;
+            --safe-area-inset-top: env(safe-area-inset-top, 0);
+            --safe-area-inset-bottom: env(safe-area-inset-bottom, 0);
+        }
+
+        body {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #87CEEB;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        #gameContainer {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        canvas {
+            touch-action: none;
+            display: block;
+            width: 100%;
+            height: 100%;
+            max-width: 100vw;
+            max-height: 100vh;
+        }
+
+        /* HUD Overlay */
+        .hud-overlay {
+            position: fixed;
+            top: var(--safe-area-inset-top);
+            left: 0;
+            right: 0;
+            padding: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(5px);
+        }
+
+        .home-button, .achievements-button {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .home-button:hover, .achievements-button:hover {
+            transform: translateY(-2px);
+        }
+
+        .stage-info {
+            position: fixed;
+            top: calc(var(--safe-area-inset-top) + 50px);
+            left: 12px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            color: var(--primary-color);
+            font-weight: bold;
+            z-index: 99;
+        }
+
+        .difficulty-badge {
+            position: fixed;
+            top: calc(var(--safe-area-inset-top) + 50px);
+            right: 12px;
+            background: rgba(255, 215, 0, 0.95);
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            color: #333;
+            font-weight: bold;
+            z-index: 99;
+        }
+
+        .instructions-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+            padding: 20px;
+            padding-top: var(--safe-area-inset-top);
+        }
+
+        .instructions-content {
+            background: linear-gradient(135deg, #FFFFFF 0%, #FFF9E6 100%);
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 600px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            border: 4px solid var(--primary-color);
+        }
+
+        .instructions-content h2 {
+            color: var(--primary-color);
+            font-size: 26px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .instructions-content p {
+            color: #2C3E50;
+            line-height: 1.6;
+            margin: 8px 0;
+            font-size: 15px;
+        }
+
+        .instructions-content ul {
+            margin-left: 20px;
+            color: #2C3E50;
+        }
+
+        .instructions-content li {
+            margin: 6px 0;
+        }
+
+        .continue-button {
+            background: linear-gradient(135deg, var(--success-color) 0%, #45a049 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 30px;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            display: block;
+            margin: 20px auto 0;
+            box-shadow: 0 5px 20px rgba(107, 207, 127, 0.4);
+            transition: transform 0.2s ease;
+        }
+
+        .continue-button:hover {
+            transform: scale(1.05);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 768px) {
+            .instructions-content {
+                padding: 20px;
+                max-width: 95%;
+            }
+
+            .instructions-content h2 {
+                font-size: 20px;
+            }
+
+            .instructions-content p {
+                font-size: 13px;
+            }
+
+            .continue-button {
+                padding: 12px 30px;
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <!-- HUD Overlay -->
+        <div class="hud-overlay">
+            <a href="/" target="_top" class="home-button" aria-label="Return to home">🏠 Home</a>
+            <button class="achievements-button" id="achievementsButton" aria-label="View achievements" title="View achievements">🏆 Achievements</button>
+        </div>
+
+        <!-- Stage Info -->
+        <div class="stage-info" id="stageInfo">Stage 1/5</div>
+
+        <!-- Difficulty Badge -->
+        <div class="difficulty-badge" id="difficultyBadge">Normal</div>
+
+        <!-- Game Canvas -->
+        <canvas id="gameCanvas"></canvas>
+    </div>
+
+    <!-- Instructions Modal -->
+    <div id="instructionsModal" class="instructions-modal">
+        <div class="instructions-content">
+            <h2>🌟 Geez Platformer Adventure</h2>
+            <p>The ultimate combination! Learn Geez alphabet while playing an exciting platformer game.</p>
+
+            <p style="margin-top: 15px;"><strong>How to Play:</strong></p>
+            <ul>
+                <li>🏃 Use Arrow Keys/A/D or Touch Buttons to move</li>
+                <li>⬆️ Press Space/↑ or Touch JUMP to jump</li>
+                <li>🎯 Collect floating Geez letters to spell words</li>
+                <li>📚 Listen to pronunciations and learn</li>
+                <li>⚠️ Avoid enemies that spawn after 30 seconds</li>
+                <li>🚪 Enter the portal after collecting all letters</li>
+            </ul>
+
+            <p style="margin-top: 15px;"><strong>Features:</strong></p>
+            <ul>
+                <li>🎮 Platformer + Educational content</li>
+                <li>🖼️ Image-word associations</li>
+                <li>🎲 Randomized letter challenges</li>
+                <li>📈 Progressive difficulty stages</li>
+                <li>👾 Enemy avoidance mechanics</li>
+                <li>🏆 Achievement system</li>
+            </ul>
+
+            <p style="margin-top: 15px; color: #FF6B35; font-weight: bold;">💡 Tip: In later stages, collect letters in the correct order for bonus points!</p>
+
+            <button class="continue-button" onclick="startGame()">Start Adventure! 🚀</button>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+    <script>
+        // gameStarted and startGame are already declared in game.js
+
+        // Wait for DOM to be fully loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            const achievementsButton = document.getElementById('achievementsButton');
+
+            if (achievementsButton) {
+                achievementsButton.addEventListener('click', () => {
+                    alert('🏆 Achievements\n\n⭐ First Steps - Collect 10 letters\n⭐ Alphabet Master - Complete all stages\n⭐ Speed Runner - Finish stage in 30 seconds\n⭐ Perfect Collector - Collect all letters in order');
+                });
+            }
+        });
+
+        function updateStageInfo(stage, difficulty) {
+            document.getElementById('stageInfo').textContent = `Stage ${stage}/5`;
+            document.getElementById('difficultyBadge').textContent = difficulty;
+        }
+    </script>
+</body>
+</html>

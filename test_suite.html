@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geez Alphabet Games - Test Suite</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+        }
+        h1 {
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            text-align: center;
+            opacity: 0.9;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            color: #333;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        .test-section h2 {
+            color: #667eea;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        .test-item {
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f5f5f5;
+        }
+        .test-item.pass {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+        }
+        .test-item.fail {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+        }
+        .test-item.warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+        }
+        .test-item.info {
+            background: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+        }
+        .status {
+            font-weight: bold;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+        .status.pass { background: #28a745; color: white; }
+        .status.fail { background: #dc3545; color: white; }
+        .status.warning { background: #ffc107; color: #333; }
+        .status.info { background: #17a2b8; color: white; }
+        .code {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 5px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+        .button-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            color: white;
+        }
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .stat-label {
+            opacity: 0.9;
+            font-size: 0.9em;
+        }
+        .details {
+            font-size: 0.85em;
+            color: #666;
+            margin-top: 5px;
+        }
+        .expandable {
+            cursor: pointer;
+            user-select: none;
+        }
+        .expanded-content {
+            display: none;
+            margin-top: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        .expanded-content.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Geez Alphabet Games Test Suite</h1>
+    <p class="subtitle">Automated testing and validation for all game components</p>
+
+    <div class="button-container">
+        <button onclick="runAllTests()">🚀 Run All Tests</button>
+        <button onclick="testMobileCompatibility()">📱 Test Mobile</button>
+        <button onclick="testPerformance()">⚡ Performance Test</button>
+        <button onclick="clearResults()">🗑️ Clear Results</button>
+    </div>
+
+    <div id="stats" class="stats" style="display: none;">
+        <div class="stat-card">
+            <div class="stat-label">Total Tests</div>
+            <div class="stat-number" id="totalTests">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Passed</div>
+            <div class="stat-number" id="passedTests">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Failed</div>
+            <div class="stat-number" id="failedTests">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Warnings</div>
+            <div class="stat-number" id="warningTests">0</div>
+        </div>
+    </div>
+
+    <div id="results"></div>
+
+    <script>
+        let testResults = {
+            total: 0,
+            passed: 0,
+            failed: 0,
+            warnings: 0
+        };
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+            document.getElementById('stats').style.display = 'none';
+            testResults = { total: 0, passed: 0, failed: 0, warnings: 0 };
+        }
+
+        function updateStats() {
+            document.getElementById('stats').style.display = 'grid';
+            document.getElementById('totalTests').textContent = testResults.total;
+            document.getElementById('passedTests').textContent = testResults.passed;
+            document.getElementById('failedTests').textContent = testResults.failed;
+            document.getElementById('warningTests').textContent = testResults.warnings;
+        }
+
+        function addTestResult(section, name, status, details = '') {
+            testResults.total++;
+            if (status === 'pass') testResults.passed++;
+            else if (status === 'fail') testResults.failed++;
+            else if (status === 'warning') testResults.warnings++;
+
+            let sectionDiv = document.getElementById(section);
+            if (!sectionDiv) {
+                sectionDiv = document.createElement('div');
+                sectionDiv.className = 'test-section';
+                sectionDiv.id = section;
+                sectionDiv.innerHTML = `<h2>${section}</h2>`;
+                document.getElementById('results').appendChild(sectionDiv);
+            }
+
+            const testItem = document.createElement('div');
+            testItem.className = `test-item ${status}`;
+            
+            const statusLabel = {
+                'pass': '✅ PASS',
+                'fail': '❌ FAIL',
+                'warning': '⚠️ WARNING',
+                'info': 'ℹ️ INFO'
+            }[status];
+
+            testItem.innerHTML = `
+                <span>${name}</span>
+                <span class="status ${status}">${statusLabel}</span>
+            `;
+            
+            if (details) {
+                testItem.innerHTML += `<div class="details">${details}</div>`;
+            }
+
+            sectionDiv.appendChild(testItem);
+            updateStats();
+        }
+
+        async function testFileStructure() {
+            const requiredFiles = [
+                'index.html',
+                'geez_alphabet_game_js/index.html',
+                'geez_alphabet_game_js/game.js',
+                'geez_alphabet_derder/index.html',
+                'geez_alphabet_derder/game.js',
+                'geez_alphabet_platformer_combined/index.html',
+                'geez_alphabet_platformer_combined/game.js',
+                'geez_alphabet_platformer_combined_tutorial/index.html',
+                'geez_alphabet_platformer_combined_tutorial/game.js'
+            ];
+
+            for (const file of requiredFiles) {
+                try {
+                    const response = await fetch(file);
+                    if (response.ok) {
+                        addTestResult('File Structure', `${file}`, 'pass');
+                    } else {
+                        addTestResult('File Structure', `${file}`, 'fail', `HTTP ${response.status}`);
+                    }
+                } catch (error) {
+                    addTestResult('File Structure', `${file}`, 'fail', error.message);
+                }
+            }
+        }
+
+        async function testJavaScriptSyntax() {
+            const jsFiles = [
+                'geez_alphabet_game_js/game.js',
+                'geez_alphabet_derder/game.js',
+                'geez_alphabet_platformer_combined/game.js',
+                'geez_alphabet_platformer_combined_tutorial/game.js'
+            ];
+
+            for (const file of jsFiles) {
+                try {
+                    const response = await fetch(file);
+                    const code = await response.text();
+                    
+                    // Check for common issues
+                    const issues = [];
+                    
+                    // Check for redeclared variables
+                    const varMatches = code.match(/(?:let|const|var)\s+(\w+)/g);
+                    if (varMatches) {
+                        const varNames = varMatches.map(m => m.split(/\s+/)[1]);
+                        const duplicates = varNames.filter((name, index) => varNames.indexOf(name) !== index);
+                        if (duplicates.length > 0) {
+                            issues.push(`Redeclared: ${[...new Set(duplicates)].join(', ')}`);
+                        }
+                    }
+                    
+                    // Check for unterminated strings
+                    const lines = code.split('\n');
+                    lines.forEach((line, i) => {
+                        const singleQuotes = (line.match(/'/g) || []).length;
+                        const doubleQuotes = (line.match(/"/g) || []).length;
+                        if (singleQuotes % 2 !== 0 || doubleQuotes % 2 !== 0) {
+                            if (!line.trim().startsWith('//')) {
+                                issues.push(`Possible unterminated string at line ${i + 1}`);
+                            }
+                        }
+                    });
+
+                    if (issues.length === 0) {
+                        addTestResult('JavaScript Syntax', file, 'pass');
+                    } else {
+                        addTestResult('JavaScript Syntax', file, 'warning', issues.join('; '));
+                    }
+                } catch (error) {
+                    addTestResult('JavaScript Syntax', file, 'fail', error.message);
+                }
+            }
+        }
+
+        function testMobileCompatibility() {
+            const tests = [
+                {
+                    name: 'Viewport Meta Tag',
+                    test: () => {
+                        const meta = document.querySelector('meta[name="viewport"]');
+                        return meta && meta.content.includes('width=device-width');
+                    }
+                },
+                {
+                    name: 'Touch Events Support',
+                    test: () => 'ontouchstart' in window || navigator.maxTouchPoints > 0
+                },
+                {
+                    name: 'Screen Size Detection',
+                    test: () => window.innerWidth > 0 && window.innerHeight > 0
+                },
+                {
+                    name: 'Device Pixel Ratio',
+                    test: () => window.devicePixelRatio >= 1
+                },
+                {
+                    name: 'Orientation Support',
+                    test: () => 'orientation' in window || 'orientation' in screen
+                }
+            ];
+
+            tests.forEach(({ name, test }) => {
+                const result = test();
+                addTestResult('Mobile Compatibility', name, result ? 'pass' : 'fail');
+            });
+
+            // Test responsive breakpoints
+            const breakpoints = [
+                { width: 320, name: 'Small Mobile (320px)' },
+                { width: 375, name: 'iPhone SE (375px)' },
+                { width: 414, name: 'iPhone Plus (414px)' },
+                { width: 768, name: 'Tablet (768px)' },
+                { width: 1024, name: 'Tablet Landscape (1024px)' }
+            ];
+
+            breakpoints.forEach(({ width, name }) => {
+                const isSupported = window.innerWidth >= width || window.screen.width >= width;
+                addTestResult('Responsive Breakpoints', name, 
+                    isSupported ? 'pass' : 'info', 
+                    `Current: ${window.innerWidth}px`);
+            });
+        }
+
+        async function testPerformance() {
+            // Test page load time
+            if (performance && performance.timing) {
+                const loadTime = performance.timing.loadEventEnd - performance.timing.navigationStart;
+                addTestResult('Performance', 'Page Load Time', 
+                    loadTime < 3000 ? 'pass' : 'warning', 
+                    `${loadTime}ms`);
+            }
+
+            // Test memory usage (if available)
+            if (performance && performance.memory) {
+                const memoryUsed = (performance.memory.usedJSHeapSize / 1048576).toFixed(2);
+                addTestResult('Performance', 'Memory Usage', 
+                    memoryUsed < 50 ? 'pass' : 'warning', 
+                    `${memoryUsed} MB`);
+            }
+
+            // Test Canvas support
+            const canvas = document.createElement('canvas');
+            const hasCanvas = !!(canvas.getContext && canvas.getContext('2d'));
+            addTestResult('Performance', 'Canvas 2D Support', hasCanvas ? 'pass' : 'fail');
+
+            // Test Web Audio API
+            const hasAudio = !!(window.AudioContext || window.webkitAudioContext);
+            addTestResult('Performance', 'Web Audio API', hasAudio ? 'pass' : 'info');
+
+            // Test Speech Synthesis
+            const hasSpeech = 'speechSynthesis' in window;
+            addTestResult('Performance', 'Speech Synthesis', hasSpeech ? 'pass' : 'warning');
+        }
+
+        async function testGameLogic() {
+            addTestResult('Game Logic', 'GeezAlphabetDict Validation', 'info', 'Requires game context');
+            addTestResult('Game Logic', 'Translation Data', 'info', 'Requires game context');
+            addTestResult('Game Logic', 'Collision Detection', 'info', 'Requires runtime test');
+            addTestResult('Game Logic', 'Score Calculation', 'info', 'Requires runtime test');
+            addTestResult('Game Logic', 'Stage Progression', 'info', 'Requires runtime test');
+        }
+
+        async function testBrowserCompatibility() {
+            const features = [
+                { name: 'ES6 Support', test: () => {
+                    try { eval('const test = () => true'); return true; }
+                    catch { return false; }
+                }},
+                { name: 'LocalStorage', test: () => typeof(Storage) !== 'undefined' },
+                { name: 'RequestAnimationFrame', test: () => 'requestAnimationFrame' in window },
+                { name: 'Fetch API', test: () => 'fetch' in window },
+                { name: 'Promise Support', test: () => 'Promise' in window },
+                { name: 'Async/Await', test: () => {
+                    try { eval('(async () => {})'); return true; }
+                    catch { return false; }
+                }}
+            ];
+
+            features.forEach(({ name, test }) => {
+                const result = test();
+                addTestResult('Browser Compatibility', name, result ? 'pass' : 'fail');
+            });
+        }
+
+        async function runAllTests() {
+            clearResults();
+            
+            addTestResult('Test Suite', 'Starting comprehensive test suite...', 'info');
+            
+            await testFileStructure();
+            await testJavaScriptSyntax();
+            await testBrowserCompatibility();
+            await testMobileCompatibility();
+            await testPerformance();
+            await testGameLogic();
+            
+            addTestResult('Test Suite', 'All tests completed!', 'info', 
+                `${testResults.passed} passed, ${testResults.failed} failed, ${testResults.warnings} warnings`);
+        }
+
+        // Auto-run tests on load
+        window.addEventListener('load', () => {
+            console.log('Test Suite Ready! Click "Run All Tests" to begin.');
+        });
+    </script>
+</body>
+</html>

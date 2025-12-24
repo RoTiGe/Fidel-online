@@ -7,6 +7,17 @@ let WIDTH = window.innerWidth;
 let HEIGHT = window.innerHeight;
 const COLLECTION_RADIUS = 50;
 let gameStarted = false;
+// Audio
+let musicVolume = 0.15;
+let sfxVolume = 0.5;
+const bgm = new Audio('/assets/audio/bgm/alphabet_loop.mp3');
+bgm.loop = true; bgm.volume = musicVolume;
+const sfx = {
+    collect: new Audio('/assets/audio/sfx/collect.wav'),
+    success: new Audio('/assets/audio/sfx/success.wav'),
+    error: new Audio('/assets/audio/sfx/error.wav')
+};
+Object.values(sfx).forEach(a => a.volume = sfxVolume);
 
 // Make canvas fullscreen and responsive
 function resizeCanvas() {
@@ -23,6 +34,7 @@ function startGame() {
     document.getElementById('instructionsModal').classList.add('hidden');
     gameStarted = true;
     resizeCanvas();
+    try { bgm.currentTime = 0; bgm.play().catch(()=>{}); } catch(e) {}
 }
 window.startGame = startGame;
 
@@ -476,6 +488,7 @@ class FallingLetter {
                     } else {
                         // Wrong order - penalty with visual feedback
                         score = Math.max(0, score - 0.5);
+                        try { sfx.error.currentTime = 0; sfx.error.play().catch(()=>{}); } catch(e) {}
                         
                         // Apply knockback to letter
                         const knockbackStrength = 15;
@@ -503,6 +516,7 @@ class FallingLetter {
                         pronounceLetter(this.letter); // Pronounce the letter
                         collectedLetters += this.letter;
                         this.reset();
+                        try { sfx.collect.currentTime = 0; sfx.collect.play().catch(()=>{}); } catch(e) {}
                     }
                 }
             }
@@ -778,6 +792,7 @@ function completeWord() {
     
     // Pronounce the completed word again as celebration
     pronounceWord(currentWord, translations[currentWord].phonetic);
+    try { sfx.success.currentTime = 0; sfx.success.play().catch(()=>{}); } catch(e) {}
     
     // Delay next word/stage transition
     setTimeout(() => {

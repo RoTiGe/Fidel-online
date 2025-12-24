@@ -6,6 +6,16 @@ const ctx = canvas.getContext('2d');
 let WIDTH = window.innerWidth;
 let HEIGHT = window.innerHeight;
 let gameStarted = false;
+// Audio
+let musicVolume = 0.15;
+let sfxVolume = 0.5;
+const bgm = new Audio('/assets/audio/bgm/derder_loop.mp3');
+bgm.loop = true; bgm.volume = musicVolume;
+const sfx = {
+    place: new Audio('/assets/audio/sfx/collect.wav'),
+    success: new Audio('/assets/audio/sfx/success.wav')
+};
+Object.values(sfx).forEach(a => a.volume = sfxVolume);
 
 // Make canvas responsive and fullscreen
 function resizeCanvas() {
@@ -22,6 +32,7 @@ function startGame() {
     document.getElementById('instructionsModal').classList.add('hidden');
     gameStarted = true;
     resizeCanvas();
+    try { bgm.currentTime = 0; bgm.play().catch(()=>{}); } catch(e) {}
 }
 
 // Add to window for HTML onclick
@@ -590,10 +601,12 @@ function handlePointerUp(clientX, clientY) {
             
             // Pronounce the letter
             pronounceLetter(draggedLetter.letter);
+            try { sfx.place.currentTime = 0; sfx.place.play().catch(()=>{}); } catch(e) {}
             
             // Check if word is complete
             if (checkCompletion()) {
                 setTimeout(() => {
+                    try { sfx.success.currentTime = 0; sfx.success.play().catch(()=>{}); } catch(e) {}
                     completeWord();
                 }, 500);
             }

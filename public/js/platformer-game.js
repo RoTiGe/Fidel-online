@@ -7,6 +7,19 @@ let SCREEN_WIDTH = window.innerWidth;
 let SCREEN_HEIGHT = window.innerHeight;
 let WORLD_WIDTH = SCREEN_WIDTH * 3;
 let gameStarted = false;
+// Audio: background music and sound effects
+let musicVolume = 0.2;
+let sfxVolume = 0.5;
+const bgm = new Audio('/assets/audio/bgm/platformer_loop.mp3');
+bgm.loop = true;
+bgm.volume = musicVolume;
+const sfx = {
+    jump: new Audio('/assets/audio/sfx/jump.wav'),
+    collect: new Audio('/assets/audio/sfx/collect.wav'),
+    hit: new Audio('/assets/audio/sfx/hit.wav'),
+    success: new Audio('/assets/audio/sfx/success.wav')
+};
+Object.values(sfx).forEach(a => a.volume = sfxVolume);
 
 const GRAVITY = 0.5;
 const JUMP_STRENGTH = -12;
@@ -31,6 +44,8 @@ function startGame() {
     // Begin pronunciation only after player clicks start
     wordPronunciationComplete = false;
     pronounceWord(currentWord, translations[currentWord].phonetic);
+    // Start background music after user interaction
+    try { bgm.currentTime = 0; bgm.play().catch(()=>{}); } catch(e) {}
 }
 window.startGame = startGame;
 
@@ -297,6 +312,7 @@ class Player {
         if (!this.isJumping) {
             this.velocityY = JUMP_STRENGTH;
             this.isJumping = true;
+            try { sfx.jump.currentTime = 0; sfx.jump.play().catch(()=>{}); } catch(e) {}
         }
     }
 
@@ -736,8 +752,10 @@ function gameLoop() {
                             collectedLetters += letter.character;
                             pronounceLetter(letter.character);
                             score += 1;
+                            try { sfx.collect.currentTime = 0; sfx.collect.play().catch(()=>{}); } catch(e) {}
                         } else {
                             score = Math.max(0, score - 0.5);
+                            try { sfx.hit.currentTime = 0; sfx.hit.play().catch(()=>{}); } catch(e) {}
                             if (score === 0) {
                                 gameOver = true;
                                 gameOverReason = 'Wrong order - Score reached 0!';
@@ -749,6 +767,7 @@ function gameLoop() {
                             collectedLetters += letter.character;
                             pronounceLetter(letter.character);
                             score += (letter.character === nextExpectedLetter) ? 1 : 0.5;
+                            try { sfx.collect.currentTime = 0; sfx.collect.play().catch(()=>{}); } catch(e) {}
                         }
                     }
                 }
@@ -762,6 +781,7 @@ function gameLoop() {
             portal.draw(camera);
             
             if (portal.checkCollision(player)) {
+                try { sfx.success.currentTime = 0; sfx.success.play().catch(()=>{}); } catch(e) {}
                 advanceStage();
             }
         }
@@ -782,6 +802,7 @@ function gameLoop() {
             if (enemy.checkCollision(player)) {
                 gameOver = true;
                 gameOverReason = `Caught by ${enemy.type}!`;
+                try { sfx.hit.currentTime = 0; sfx.hit.play().catch(()=>{}); } catch(e) {}
             }
         });
         
@@ -1072,3 +1093,27 @@ function startGameLoop() {
     }
 }
 startGameLoop();
+
+// Hook up optional UI volume sliders if present
+window.addEventListener('DOMContentLoaded', () => {
+    const musicSlider = document.getElementById('musicVolume');
+    const sfxSlider = document.getElementById('sfxVolume');
+    if (musicSlider) {
+        musicSlider.addEventListener('input', () => {
+            musicVolume = parseFloat(musicSlider.value);
+            bgm.volume = musicVolume;
+            localStorage.setItem('musicVolume', String(musicVolume));
+        });
+        const saved = parseFloat(localStorage.getItem('musicVolume'));
+        if (!isNaN(saved)) { musicSlider.value = saved; musicVolume = saved; bgm.volume = musicVolume; }
+    }
+    if (sfxSlider) {
+        sfxSlider.addEventListener('input', () => {
+            sfxVolume = parseFloat(sfxSlider.value);
+            Object.values(sfx).forEach(a => a.volume = sfxVolume);
+            localStorage.setItem('sfxVolume', String(sfxVolume));
+        });
+        const saved = parseFloat(localStorage.getItem('sfxVolume'));
+        if (!isNaN(saved)) { sfxSlider.value = saved; sfxVolume = saved; Object.values(sfx).forEach(a => a.volume = sfxVolume); }
+    }
+});

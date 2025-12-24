@@ -28,6 +28,9 @@ function startGame() {
     document.getElementById('instructionsModal').classList.add('hidden');
     gameStarted = true;
     resizeCanvas();
+    // Begin pronunciation only after player clicks start
+    wordPronunciationComplete = false;
+    pronounceWord(currentWord, translations[currentWord].phonetic);
 }
 window.startGame = startGame;
 
@@ -65,29 +68,29 @@ const GeezAlphabetDict = {
     'ፐ': 'pe', 'ፑ': 'pu', 'ፒ': 'pi', 'ፓ': 'pa', 'ፔ': 'pey', 'ፕ': 'pih', 'ፖ': 'po'
 };
 
-// Translations for educational words
+// Translations with categories
  const translations = {
-  "breakfast": { "amharic": "ቁርስ", "phonetic": "q'oors" },
-  "hello": { "amharic": "ሀሎ", "phonetic": "hal-lo" },
-  "world": { "amharic": "ዓለም", "phonetic": "ah-lem" },
-  "computer": { "amharic": "ኮምፒውተር", "phonetic": "kom-pyu-ter" },
-  "book": { "amharic": "መጽሐፍ", "phonetic": "mets-haf" },
-  "friend": { "amharic": "ጓደኛ", "phonetic": "gwah-den-yah" },
-  "water": { "amharic": "ውሃ", "phonetic": "wu-ha" },
-  "sun": { "amharic": "ፀሐይ", "phonetic": "tse-hai" },
-  "moon": { "amharic": "ጨረቃ", "phonetic": "ch'er-eh-q'ah" },
-  "tree": { "amharic": "ዛፍ", "phonetic": "zahf" },
-  "flower": { "amharic": "አበባ", "phonetic": "ah-beh-bah" },
-  "lunch": { "amharic": "ምሳ", "phonetic": "mi-sah" },
-  "dinner": { "amharic": "እራት", "phonetic": "eh-raht" },
-  "mother": { "amharic": "እናት", "phonetic": "en-naht" },
-  "father": { "amharic": "አባት", "phonetic": "ah-baht" },
-  "sister": { "amharic": "እህት", "phonetic": "eh-hit" },
-  "brother": { "amharic": "ወንድም", "phonetic": "wen-dim" },
-  "uncle": { "amharic": "አጎት", "phonetic": "ah-goht" },
-  "aunt": { "amharic": "አክስት", "phonetic": "ah-kist" },
-  "grandmother": { "amharic": "አያት", "phonetic": "ah-yaht" },
-  "grandfather": { "amharic": "አያት", "phonetic": "ah-yaht" }
+    "breakfast": { "amharic": "ቁርስ", "phonetic": "q'oors", "category": "food" },
+    "hello": { "amharic": "ሀሎ", "phonetic": "hal-lo", "category": "basics" },
+    "world": { "amharic": "ዓለም", "phonetic": "ah-lem", "category": "nature" },
+    "computer": { "amharic": "ኮምፒውተር", "phonetic": "kom-pyu-ter", "category": "objects" },
+    "book": { "amharic": "መጽሐፍ", "phonetic": "mets-haf", "category": "objects" },
+    "friend": { "amharic": "ጓደኛ", "phonetic": "gwah-den-yah", "category": "people" },
+    "water": { "amharic": "ውሃ", "phonetic": "wu-ha", "category": "nature" },
+    "sun": { "amharic": "ፀሐይ", "phonetic": "tse-hai", "category": "nature" },
+    "moon": { "amharic": "ጨረቃ", "phonetic": "ch'er-eh-q'ah", "category": "nature" },
+    "tree": { "amharic": "ዛፍ", "phonetic": "zahf", "category": "nature" },
+    "flower": { "amharic": "አበባ", "phonetic": "ah-beh-bah", "category": "nature" },
+    "lunch": { "amharic": "ምሳ", "phonetic": "mi-sah", "category": "food" },
+    "dinner": { "amharic": "እራት", "phonetic": "eh-raht", "category": "food" },
+    "mother": { "amharic": "እናት", "phonetic": "en-naht", "category": "family" },
+    "father": { "amharic": "አባት", "phonetic": "ah-baht", "category": "family" },
+    "sister": { "amharic": "እህት", "phonetic": "eh-hit", "category": "family" },
+    "brother": { "amharic": "ወንድም", "phonetic": "wen-dim", "category": "family" },
+    "uncle": { "amharic": "አጎት", "phonetic": "ah-goht", "category": "family" },
+    "aunt": { "amharic": "አክስት", "phonetic": "ah-kist", "category": "family" },
+    "grandmother": { "amharic": "አያት", "phonetic": "ah-yaht", "category": "family" },
+    "grandfather": { "amharic": "አያት", "phonetic": "ah-yaht", "category": "family" }
 };
 
 // Image cache for word visuals
@@ -124,17 +127,32 @@ function loadWordImage(word) {
     };
 }
 
-// Game stages configuration
-const stageTemplates = [
-    { name: 'Morning Sky', bgColor: '#87CEEB', coinColor: '#FFD700', platformColor: '#8B4513', requiresOrder: false },
-    { name: 'Sunset', bgColor: '#FF6B35', coinColor: '#FFEB3B', platformColor: '#D84315', requiresOrder: false },
-    { name: 'Night', bgColor: '#1A237E', coinColor: '#FFA726', platformColor: '#4A148C', requiresOrder: true },
-    { name: 'Rainbow Land', bgColor: '#E1BEE7', coinColor: '#F06292', platformColor: '#7B1FA2', requiresOrder: true },
-    { name: 'Ocean Dream', bgColor: '#006064', coinColor: '#FFD54F', platformColor: '#00838F', requiresOrder: true }
+// Build categories as stages (fewest words first)
+const categoriesMap = {};
+Object.keys(translations).forEach(w => {
+    const cat = translations[w].category || 'uncategorized';
+    (categoriesMap[cat] ||= []).push(w);
+});
+const categoriesOrder = Object.keys(categoriesMap).sort((a,b) => categoriesMap[a].length - categoriesMap[b].length);
+
+// Visual templates cycled across categories
+const visualPalette = [
+    { name: 'Morning Sky', bgColor: '#87CEEB', coinColor: '#FFD700', platformColor: '#8B4513' },
+    { name: 'Sunset', bgColor: '#FF6B35', coinColor: '#FFEB3B', platformColor: '#D84315' },
+    { name: 'Night', bgColor: '#1A237E', coinColor: '#FFA726', platformColor: '#4A148C' },
+    { name: 'Rainbow Land', bgColor: '#E1BEE7', coinColor: '#F06292', platformColor: '#7B1FA2' },
+    { name: 'Ocean Dream', bgColor: '#006064', coinColor: '#FFD54F', platformColor: '#00838F' }
 ];
+const stageTemplates = categoriesOrder.map((cat, i) => ({
+    name: `${cat[0].toUpperCase()}${cat.slice(1)}`,
+    bgColor: visualPalette[i % visualPalette.length].bgColor,
+    coinColor: visualPalette[i % visualPalette.length].coinColor,
+    platformColor: visualPalette[i % visualPalette.length].platformColor,
+    requiresOrder: i >= Math.floor(categoriesOrder.length / 2)
+}));
 
 // Game variables
-let wordsToTranslate = Object.keys(translations);
+let wordsToTranslate = categoriesMap[categoriesOrder[0]];
 let currentWord = wordsToTranslate[Math.floor(Math.random() * wordsToTranslate.length)];
 let currentAmharic = translations[currentWord].amharic;
 let collectedLetters = '';
@@ -413,9 +431,10 @@ class Enemy {
         
         this.velocityY += GRAVITY;
         this.y += this.velocityY;
-        
-        if (this.y + this.height >= SCREEN_HEIGHT) {
-            this.y = SCREEN_HEIGHT - this.height;
+        // Clamp to ground top (same level as player)
+        const groundTopY = SCREEN_HEIGHT - 50; // ground platform y
+        if (this.y + this.height >= groundTopY) {
+            this.y = groundTopY - this.height;
             this.velocityY = 0;
         }
         
@@ -577,9 +596,25 @@ function initializeLevel() {
 function spawnEnemy() {
     const enemyTypes = ['lion', 'tiger', 'wolf'];
     const randomType = enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
-    const spawnFromLeft = Math.random() < 0.5;
+    // Determine player's position relative to current screen
+    const playerScreenX = player.x - camera.x;
+    const distLeft = playerScreenX;
+    const distRight = SCREEN_WIDTH - (playerScreenX + player.width);
+    const midTolerance = SCREEN_WIDTH * 0.1; // 10% width considered "middle"
+    let spawnFromLeft;
+    if (Math.abs(distLeft - distRight) <= midTolerance) {
+        // Player roughly in the middle: choose randomly
+        spawnFromLeft = Math.random() < 0.5;
+    } else {
+        // Spawn from the furthest edge from the player
+        spawnFromLeft = distLeft > distRight;
+    }
     const spawnX = spawnFromLeft ? camera.x - 60 : camera.x + SCREEN_WIDTH + 10;
-    enemies.push(new Enemy(randomType, spawnX, SCREEN_HEIGHT - 100));
+    const groundTopY = SCREEN_HEIGHT - 50;
+    const enemy = new Enemy(randomType, spawnX, groundTopY - 50);
+    // Ensure enemy starts exactly on ground level
+    enemy.y = groundTopY - enemy.height;
+    enemies.push(enemy);
 }
 
 function nextWord() {
@@ -603,6 +638,7 @@ function advanceStage() {
     player.y = 300;
     camera.x = 0;
     initializePlatforms();
+    wordsToTranslate = categoriesMap[categoriesOrder[currentStage]];
     nextWord();
 }
 
@@ -624,7 +660,6 @@ function restartGame() {
 // Initialize game
 initializePlatforms();
 loadWordImage(currentWord);
-pronounceWord(currentWord, translations[currentWord].phonetic);
 initializeLevel();
 
 function gameLoop() {
@@ -752,25 +787,26 @@ function gameLoop() {
         
         player.draw(camera);
         
-        // Draw UI
+        // Draw UI (shifted down to avoid overlap with top frame)
+        const UI_TOP_MARGIN = 140;
         ctx.fillStyle = 'white';
         ctx.strokeStyle = 'black';
         ctx.lineWidth = 3;
         ctx.font = 'bold 24px Arial';
-        ctx.strokeText(`⭐ Score: ${score.toFixed(1)}`, 10, 30);
-        ctx.fillText(`⭐ Score: ${score.toFixed(1)}`, 10, 30);
+        ctx.strokeText(`⭐ Score: ${score.toFixed(1)}`, 10, UI_TOP_MARGIN + 30);
+        ctx.fillText(`⭐ Score: ${score.toFixed(1)}`, 10, UI_TOP_MARGIN + 30);
         
         ctx.font = 'bold 20px Arial';
-        ctx.strokeText(`Stage: ${stage.name}`, 10, 55);
-        ctx.fillText(`Stage: ${stage.name}`, 10, 55);
+        ctx.strokeText(`Stage: ${stage.name}`, 10, UI_TOP_MARGIN + 55);
+        ctx.fillText(`Stage: ${stage.name}`, 10, UI_TOP_MARGIN + 55);
         
         ctx.font = 'bold 18px Arial';
-        ctx.strokeText(`Word: ${currentWord}`, 10, 80);
-        ctx.fillText(`Word: ${currentWord}`, 10, 80);
+        ctx.strokeText(`Word: ${currentWord}`, 10, UI_TOP_MARGIN + 80);
+        ctx.fillText(`Word: ${currentWord}`, 10, UI_TOP_MARGIN + 80);
         
         ctx.font = 'bold 28px NotoSansEthiopic, Arial';
-        ctx.strokeText(`${currentAmharic}`, 10, 110);
-        ctx.fillText(`${currentAmharic}`, 10, 110);
+        ctx.strokeText(`${currentAmharic}`, 10, UI_TOP_MARGIN + 110);
+        ctx.fillText(`${currentAmharic}`, 10, UI_TOP_MARGIN + 110);
         
         if (collectedLetters) {
             ctx.fillStyle = '#4CAF50';
@@ -826,7 +862,7 @@ function gameLoop() {
             
             ctx.fillStyle = '#4A148C';
             ctx.font = 'bold 16px Arial';
-            ctx.fillText(`(${translations[currentWord].pronunciation})`, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 15);
+            ctx.fillText(`(${translations[currentWord].phonetic})`, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 15);
             ctx.textAlign = 'left';
         }
     } else {

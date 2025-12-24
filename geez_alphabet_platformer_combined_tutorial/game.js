@@ -65,29 +65,29 @@ const GeezAlphabetDict = {
     'ፐ': 'pe', 'ፑ': 'pu', 'ፒ': 'pi', 'ፓ': 'pa', 'ፔ': 'pey', 'ፕ': 'pih', 'ፖ': 'po'
 };
 
-// Translations for educational words
+// Translations for educational words with categories
  const translations = {
-  "breakfast": { "amharic": "ቁርስ", "phonetic": "q'oors" },
-  "hello": { "amharic": "ሀሎ", "phonetic": "hal-lo" },
-  "world": { "amharic": "ዓለም", "phonetic": "ah-lem" },
-  "computer": { "amharic": "ኮምፒውተር", "phonetic": "kom-pyu-ter" },
-  "book": { "amharic": "መጽሐፍ", "phonetic": "mets-haf" },
-  "friend": { "amharic": "ጓደኛ", "phonetic": "gwah-den-yah" },
-  "water": { "amharic": "ውሃ", "phonetic": "wu-ha" },
-  "sun": { "amharic": "ፀሐይ", "phonetic": "tse-hai" },
-  "moon": { "amharic": "ጨረቃ", "phonetic": "ch'er-eh-q'ah" },
-  "tree": { "amharic": "ዛፍ", "phonetic": "zahf" },
-  "flower": { "amharic": "አበባ", "phonetic": "ah-beh-bah" },
-  "lunch": { "amharic": "ምሳ", "phonetic": "mi-sah" },
-  "dinner": { "amharic": "እራት", "phonetic": "eh-raht" },
-  "mother": { "amharic": "እናት", "phonetic": "en-naht" },
-  "father": { "amharic": "አባት", "phonetic": "ah-baht" },
-  "sister": { "amharic": "እህት", "phonetic": "eh-hit" },
-  "brother": { "amharic": "ወንድም", "phonetic": "wen-dim" },
-  "uncle": { "amharic": "አጎት", "phonetic": "ah-goht" },
-  "aunt": { "amharic": "አክስት", "phonetic": "ah-kist" },
-  "grandmother": { "amharic": "አያት", "phonetic": "ah-yaht" },
-  "grandfather": { "amharic": "አያት", "phonetic": "ah-yaht" }
+    "breakfast": { "amharic": "ቁርስ", "phonetic": "q'oors", "category": "food" },
+    "hello": { "amharic": "ሀሎ", "phonetic": "hal-lo", "category": "basics" },
+    "world": { "amharic": "ዓለም", "phonetic": "ah-lem", "category": "nature" },
+    "computer": { "amharic": "ኮምፒውተር", "phonetic": "kom-pyu-ter", "category": "objects" },
+    "book": { "amharic": "መጽሐፍ", "phonetic": "mets-haf", "category": "objects" },
+    "friend": { "amharic": "ጓደኛ", "phonetic": "gwah-den-yah", "category": "people" },
+    "water": { "amharic": "ውሃ", "phonetic": "wu-ha", "category": "nature" },
+    "sun": { "amharic": "ፀሐይ", "phonetic": "tse-hai", "category": "nature" },
+    "moon": { "amharic": "ጨረቃ", "phonetic": "ch'er-eh-q'ah", "category": "nature" },
+    "tree": { "amharic": "ዛፍ", "phonetic": "zahf", "category": "nature" },
+    "flower": { "amharic": "አበባ", "phonetic": "ah-beh-bah", "category": "nature" },
+    "lunch": { "amharic": "ምሳ", "phonetic": "mi-sah", "category": "food" },
+    "dinner": { "amharic": "እራት", "phonetic": "eh-raht", "category": "food" },
+    "mother": { "amharic": "እናት", "phonetic": "en-naht", "category": "family" },
+    "father": { "amharic": "አባት", "phonetic": "ah-baht", "category": "family" },
+    "sister": { "amharic": "እህት", "phonetic": "eh-hit", "category": "family" },
+    "brother": { "amharic": "ወንድም", "phonetic": "wen-dim", "category": "family" },
+    "uncle": { "amharic": "አጎት", "phonetic": "ah-goht", "category": "family" },
+    "aunt": { "amharic": "አክስት", "phonetic": "ah-kist", "category": "family" },
+    "grandmother": { "amharic": "አያት", "phonetic": "ah-yaht", "category": "family" },
+    "grandfather": { "amharic": "አያት", "phonetic": "ah-yaht", "category": "family" }
 };
 
 // Image cache for word visuals
@@ -124,21 +124,36 @@ function loadWordImage(word) {
     };
 }
 
-// Game stages configuration
-const stageTemplates = [
-    { name: 'Morning Sky', bgColor: '#87CEEB', coinColor: '#FFD700', platformColor: '#8B4513', requiresOrder: false },
-    { name: 'Sunset', bgColor: '#FF6B35', coinColor: '#FFEB3B', platformColor: '#D84315', requiresOrder: false },
-    { name: 'Night', bgColor: '#1A237E', coinColor: '#FFA726', platformColor: '#4A148C', requiresOrder: true },
-    { name: 'Rainbow Land', bgColor: '#E1BEE7', coinColor: '#F06292', platformColor: '#7B1FA2', requiresOrder: true },
-    { name: 'Ocean Dream', bgColor: '#006064', coinColor: '#FFD54F', platformColor: '#00838F', requiresOrder: true }
+// Build categories as stages (fewest words first)
+const categoriesMap = {};
+Object.keys(translations).forEach(w => {
+    const cat = translations[w].category || 'uncategorized';
+    (categoriesMap[cat] ||= []).push(w);
+});
+const categoriesOrder = Object.keys(categoriesMap).sort((a,b) => categoriesMap[a].length - categoriesMap[b].length);
+
+// Visual templates cycled across categories
+const visualPalette = [
+    { name: 'Morning Sky', bgColor: '#87CEEB', coinColor: '#FFD700', platformColor: '#8B4513' },
+    { name: 'Sunset', bgColor: '#FF6B35', coinColor: '#FFEB3B', platformColor: '#D84315' },
+    { name: 'Night', bgColor: '#1A237E', coinColor: '#FFA726', platformColor: '#4A148C' },
+    { name: 'Rainbow Land', bgColor: '#E1BEE7', coinColor: '#F06292', platformColor: '#7B1FA2' },
+    { name: 'Ocean Dream', bgColor: '#006064', coinColor: '#FFD54F', platformColor: '#00838F' }
 ];
+const stageTemplates = categoriesOrder.map((cat, i) => ({
+    name: `${cat[0].toUpperCase()}${cat.slice(1)}`,
+    bgColor: visualPalette[i % visualPalette.length].bgColor,
+    coinColor: visualPalette[i % visualPalette.length].coinColor,
+    platformColor: visualPalette[i % visualPalette.length].platformColor,
+    requiresOrder: i >= Math.floor(categoriesOrder.length / 2)
+}));
 
 // Game variables
-let wordsToTranslate = Object.keys(translations);
+let wordsToTranslate = categoriesMap[categoriesOrder[0]];
 let currentWord = wordsToTranslate[Math.floor(Math.random() * wordsToTranslate.length)];
 let currentAmharic = translations[currentWord].amharic;
 let collectedLetters = '';
-let currentStage = 0;
+let currentStage = 0; // now indexes into categoriesOrder
 let score = 0;
 // gameStarted is already declared at the top of the file
 let gameOver = false;
@@ -643,6 +658,7 @@ function advanceStage() {
     player.y = 300;
     camera.x = 0;
     initializePlatforms();
+    wordsToTranslate = categoriesMap[categoriesOrder[currentStage]];
     nextWord();
 }
 
@@ -866,7 +882,7 @@ function gameLoop() {
             
             ctx.fillStyle = '#4A148C';
             ctx.font = 'bold 16px Arial';
-            ctx.fillText(`(${translations[currentWord].pronunciation})`, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 15);
+            ctx.fillText(`(${translations[currentWord].phonetic})`, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 15);
             ctx.textAlign = 'left';
         }
     } else {

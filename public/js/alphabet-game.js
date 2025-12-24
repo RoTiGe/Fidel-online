@@ -23,6 +23,10 @@ function startGame() {
     document.getElementById('instructionsModal').classList.add('hidden');
     gameStarted = true;
     resizeCanvas();
+    // Start pronunciation only after player clicks start
+    wordPronunciationComplete = false;
+    pronounceWord(currentWord, translations[currentWord].phonetic);
+    lastSpawnTime = Date.now();
 }
 window.startGame = startGame;
 
@@ -97,31 +101,41 @@ const translations = {
 }
 */
 const translations = {
-  "breakfast": { "amharic": "ቁርስ", "phonetic": "q'oors" },
-  "hello": { "amharic": "ሀሎ", "phonetic": "hal-lo" },
-  "world": { "amharic": "ዓለም", "phonetic": "ah-lem" },
-  "computer": { "amharic": "ኮምፒውተር", "phonetic": "kom-pyu-ter" },
-  "book": { "amharic": "መጽሐፍ", "phonetic": "mets-haf" },
-  "friend": { "amharic": "ጓደኛ", "phonetic": "gwah-den-yah" },
-  "water": { "amharic": "ውሃ", "phonetic": "wu-ha" },
-  "sun": { "amharic": "ፀሐይ", "phonetic": "tse-hai" },
-  "moon": { "amharic": "ጨረቃ", "phonetic": "ch'er-eh-q'ah" },
-  "tree": { "amharic": "ዛፍ", "phonetic": "zahf" },
-  "flower": { "amharic": "አበባ", "phonetic": "ah-beh-bah" },
-  "lunch": { "amharic": "ምሳ", "phonetic": "mi-sah" },
-  "dinner": { "amharic": "እራት", "phonetic": "eh-raht" },
-  "mother": { "amharic": "እናት", "phonetic": "en-naht" },
-  "father": { "amharic": "አባት", "phonetic": "ah-baht" },
-  "sister": { "amharic": "እህት", "phonetic": "eh-hit" },
-  "brother": { "amharic": "ወንድም", "phonetic": "wen-dim" },
-  "uncle": { "amharic": "አጎት", "phonetic": "ah-goht" },
-  "aunt": { "amharic": "አክስት", "phonetic": "ah-kist" },
-  "grandmother": { "amharic": "አያት", "phonetic": "ah-yaht" },
-  "grandfather": { "amharic": "አያት", "phonetic": "ah-yaht" }
+    "breakfast": { "amharic": "ቁርስ", "phonetic": "q'oors", "category": "food" },
+    "hello": { "amharic": "ሀሎ", "phonetic": "hal-lo", "category": "basics" },
+    "world": { "amharic": "ዓለም", "phonetic": "ah-lem", "category": "nature" },
+    "computer": { "amharic": "ኮምፒውተር", "phonetic": "kom-pyu-ter", "category": "objects" },
+    "book": { "amharic": "መጽሐፍ", "phonetic": "mets-haf", "category": "objects" },
+    "friend": { "amharic": "ጓደኛ", "phonetic": "gwah-den-yah", "category": "people" },
+    "water": { "amharic": "ውሃ", "phonetic": "wu-ha", "category": "nature" },
+    "sun": { "amharic": "ፀሐይ", "phonetic": "tse-hai", "category": "nature" },
+    "moon": { "amharic": "ጨረቃ", "phonetic": "ch'er-eh-q'ah", "category": "nature" },
+    "tree": { "amharic": "ዛፍ", "phonetic": "zahf", "category": "nature" },
+    "flower": { "amharic": "አበባ", "phonetic": "ah-beh-bah", "category": "nature" },
+    "lunch": { "amharic": "ምሳ", "phonetic": "mi-sah", "category": "food" },
+    "dinner": { "amharic": "እራት", "phonetic": "eh-raht", "category": "food" },
+    "mother": { "amharic": "እናት", "phonetic": "en-naht", "category": "family" },
+    "father": { "amharic": "አባት", "phonetic": "ah-baht", "category": "family" },
+    "sister": { "amharic": "እህት", "phonetic": "eh-hit", "category": "family" },
+    "brother": { "amharic": "ወንድም", "phonetic": "wen-dim", "category": "family" },
+    "uncle": { "amharic": "አጎት", "phonetic": "ah-goht", "category": "family" },
+    "aunt": { "amharic": "አክስት", "phonetic": "ah-kist", "category": "family" },
+    "grandmother": { "amharic": "አያት", "phonetic": "ah-yaht", "category": "family" },
+    "grandfather": { "amharic": "አያት", "phonetic": "ah-yaht", "category": "family" }
 };
 
 // Game variables
-let wordsToTranslate = Object.keys(translations);
+// Categories as stages (fewest words first)
+const categoriesMap = {};
+Object.keys(translations).forEach(w => {
+    const cat = translations[w].category || 'uncategorized';
+    (categoriesMap[cat] ||= []).push(w);
+});
+const categoriesOrder = Object.keys(categoriesMap).sort((a,b) => categoriesMap[a].length - categoriesMap[b].length);
+let currentCategoryIndex = 0;
+let currentCategory = categoriesOrder[currentCategoryIndex];
+let completedWordsSet = new Set();
+let wordsToTranslate = categoriesMap[currentCategory];
 let currentWord = wordsToTranslate[Math.floor(Math.random() * wordsToTranslate.length)];
 let currentAmharic = translations[currentWord].amharic;
 let collectedLetters = '';
@@ -140,10 +154,11 @@ let playerShakeOffset = { x: 0, y: 0 };
 let shakeIntensity = 0;
 let flashTimer = 0;
 
-// Stage system
+// Stage system (displayed stage number map from category index)
 let currentStage = 1;
-let wordsCompletedInStage = 0;
-const WORDS_PER_STAGE = 3;
+function getEffectiveStage() {
+    return Math.min(5, currentCategoryIndex + 1);
+}
 let lastSpawnTime = 0;
 let gameOver = false;
 let restartButton = { x: 0, y: 0, width: 0, height: 0 };
@@ -278,16 +293,16 @@ class FallingLetter {
     reset() {
         this.letter = currentAmharic[Math.floor(Math.random() * currentAmharic.length)];
         this.active = false;
-        
+        const eff = getEffectiveStage();
         // Reset position based on stage
-        if (currentStage <= 3) {
+        if (eff <= 3) {
             // Stages 1-3: Drop from top only
             this.x = Math.random() * (WIDTH - this.size);
             this.y = 0;
             this.velocityX = 0;
             this.velocityY = 1 + Math.random();
             this.spawnEdge = 'top';
-        } else if (currentStage === 4) {
+        } else if (eff === 4) {
             // Stage 4: Spawn from top, left, or right (straight movement)
             const edge = Math.floor(Math.random() * 3); // 0=top, 1=left, 2=right
             if (edge === 0) {
@@ -312,7 +327,7 @@ class FallingLetter {
                 this.velocityY = 0;
                 this.spawnEdge = 'right';
             }
-        } else if (currentStage === 5) {
+        } else if (eff === 5) {
             // Stage 5: Spawn from edges with diagonal/slanted movement
             const edge = Math.floor(Math.random() * 3); // 0=top, 1=left, 2=right
             if (edge === 0) {
@@ -393,7 +408,7 @@ class FallingLetter {
                 const nextExpectedLetter = currentAmharic[collectedLetters.length];
                 
                 // Stage 3+: Check order and apply penalty
-                if (currentStage >= 3) {
+                if (getEffectiveStage() >= 3) {
                     if (this.letter === nextExpectedLetter) {
                         // Correct order
                         if (!collectedLetters.includes(this.letter) || collectedLetters.length < currentAmharic.length) {
@@ -554,7 +569,7 @@ function spawnLetters() {
     if (!wordPronunciationComplete) return;
     
     const currentTime = Date.now();
-    const config = STAGE_CONFIGS[currentStage];
+    const config = STAGE_CONFIGS[getEffectiveStage()];
     
     if (currentTime - lastSpawnTime >= config.spawnInterval) {
         const inactiveLetters = fallingLetters.filter(l => !l.active);
@@ -632,8 +647,8 @@ canvas.addEventListener('touchend', (e) => {
 
 // Check word completion
 function checkWordCompletion() {
-    // Stage 3: Order matters
-    if (currentStage === 3) {
+    // Stage 3 (effective): Order matters
+    if (getEffectiveStage() === 3) {
         if (collectedLetters === currentAmharic) {
             completeWord();
         }
@@ -662,8 +677,7 @@ function completeWord() {
     }
     
     score += pointsToAdd;
-    wordsCompletedInStage++;
-    console.log(`Word completed! Score: ${score}, Stage: ${currentStage}, Words in stage: ${wordsCompletedInStage}`);
+    console.log(`Word completed! Score: ${score}, Stage: ${currentStage}, Category: ${currentCategory}`);
     
     // Deactivate all letters and cancel ongoing speech
     fallingLetters.forEach(letter => {
@@ -707,30 +721,24 @@ function completeWord() {
     // Pronounce the completed word again as celebration
     pronounceWord(currentWord, translations[currentWord].phonetic);
     
-    // Delay next word/stage transition
+    // Delay next word/category transition
     setTimeout(() => {
         celebrationActive = false;
-        
-        // Check for stage progression
-        if (wordsCompletedInStage >= WORDS_PER_STAGE) {
-            // Check for game over after stage 1
-            if (currentStage === 1 && score === 0) {
-                gameOver = true;
-                console.log("Game Over! Score is 0 after Stage 1");
-                return;
-            }
-            
-            if (currentStage < 5) {
-                currentStage++;
-                wordsCompletedInStage = 0;
-                console.log(`Advanced to Stage ${currentStage}!`);
-            } else {
-                wordsCompletedInStage = 0;
-            }
+        // Track completion for current category
+        completedWordsSet.add(currentWord);
+        const remaining = categoriesMap[currentCategory].filter(w => !completedWordsSet.has(w));
+        if (remaining.length === 0) {
+            // Advance to next category
+            currentCategoryIndex = (currentCategoryIndex + 1) % categoriesOrder.length;
+            currentCategory = categoriesOrder[currentCategoryIndex];
+            wordsToTranslate = categoriesMap[currentCategory];
+            completedWordsSet = new Set();
+            currentStage = Math.min(5, currentCategoryIndex + 1);
+            console.log(`Advanced to Stage ${currentStage}: ${currentCategory}`);
         }
-        
-        // Load next word
-        currentWord = wordsToTranslate[Math.floor(Math.random() * wordsToTranslate.length)];
+        // Load next word from remaining
+        const pool = categoriesMap[currentCategory].filter(w => !completedWordsSet.has(w));
+        currentWord = pool[Math.floor(Math.random() * pool.length)];
         currentAmharic = translations[currentWord].amharic;
         collectedLetters = '';
         collectedOutOfOrder = false;
@@ -863,7 +871,8 @@ function drawUI() {
     stageGradient.addColorStop(0.5, '#9D84FF');
     stageGradient.addColorStop(1, '#4ECDC4');
     ctx.fillStyle = stageGradient;
-    ctx.fillText(`Stage ${currentStage}`, WIDTH / 2, isMobile ? 20 : 30);
+    const stageLabel = `Stage ${currentStage}: ${currentCategory} (${categoriesMap[currentCategory].length} words)`;
+    ctx.fillText(stageLabel, WIDTH / 2, isMobile ? 20 : 30);
     
     ctx.shadowColor = 'transparent';
     
@@ -934,7 +943,7 @@ function drawUI() {
     ctx.shadowColor = 'transparent';
     
     // Stage 3 hint
-    if (currentStage === 3) {
+    if (getEffectiveStage() === 3) {
         ctx.fillStyle = RED;
         ctx.font = 'bold 20px Arial';
         ctx.textAlign = 'left';
@@ -1127,8 +1136,11 @@ function drawGameOver() {
 
 // Restart game function
 function restartGame() {
+    currentCategoryIndex = 0;
+    currentCategory = categoriesOrder[currentCategoryIndex];
+    wordsToTranslate = categoriesMap[currentCategory];
+    completedWordsSet = new Set();
     currentStage = 1;
-    wordsCompletedInStage = 0;
     score = 0;
     collectedLetters = '';
     collectedOutOfOrder = false;
@@ -1206,11 +1218,7 @@ function gameLoop() {
 }
 
 // Start the game
-console.log(`Starting game with word: ${currentWord}, Amharic: ${currentAmharic}`);
-// Pronounce the first word
-wordPronunciationComplete = false;
-pronounceWord(currentWord, translations[currentWord].phonetic);
-lastSpawnTime = Date.now();
+console.log(`Starting game ready with word: ${currentWord}, Amharic: ${currentAmharic}`);
 
 // Only start game loop after continue button is clicked
 function startGameLoop() {

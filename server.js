@@ -52,7 +52,7 @@ app.get('/derder', (req, res) => {
 
 app.get('/mario-platformer', (req, res) => {
     res.render('mario-platformer', { 
-        title: 'Alphabet Mario Platformer'
+        title: 'AbuGida'
     });
 });
 

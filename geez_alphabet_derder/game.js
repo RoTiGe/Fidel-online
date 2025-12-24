@@ -72,31 +72,99 @@ const GeezAlphabetDict = {
 };
 
 const translations = {
-  "breakfast": { "amharic": "ቁርስ", "phonetic": "q'oors" },
-  "hello": { "amharic": "ሀሎ", "phonetic": "hal-lo" },
-  "world": { "amharic": "ዓለም", "phonetic": "ah-lem" },
-  "computer": { "amharic": "ኮምፒውተር", "phonetic": "kom-pyu-ter" },
-  "book": { "amharic": "መጽሐፍ", "phonetic": "mets-haf" },
-  "friend": { "amharic": "ጓደኛ", "phonetic": "gwah-den-yah" },
-  "water": { "amharic": "ውሃ", "phonetic": "wu-ha" },
-  "sun": { "amharic": "ፀሐይ", "phonetic": "tse-hai" },
-  "moon": { "amharic": "ጨረቃ", "phonetic": "ch'er-eh-q'ah" },
-  "tree": { "amharic": "ዛፍ", "phonetic": "zahf" },
-  "flower": { "amharic": "አበባ", "phonetic": "ah-beh-bah" },
-  "lunch": { "amharic": "ምሳ", "phonetic": "mi-sah" },
-  "dinner": { "amharic": "እራት", "phonetic": "eh-raht" },
-  "mother": { "amharic": "እናት", "phonetic": "en-naht" },
-  "father": { "amharic": "አባት", "phonetic": "ah-baht" },
-  "sister": { "amharic": "እህት", "phonetic": "eh-hit" },
-  "brother": { "amharic": "ወንድም", "phonetic": "wen-dim" },
-  "uncle": { "amharic": "አጎት", "phonetic": "ah-goht" },
-  "aunt": { "amharic": "አክስት", "phonetic": "ah-kist" },
-  "grandmother": { "amharic": "አያት", "phonetic": "ah-yaht" },
-  "grandfather": { "amharic": "አያት", "phonetic": "ah-yaht" }
+  // --- 1. BASICS & GREETINGS ---
+  "hello": { "amharic": "ሀሎ", "phonetic": "hal-lo", "category": "basics" },
+  "goodbye": { "amharic": "ደህና ሁን", "phonetic": "deh-na hoon", "category": "basics" },
+  "thank you": { "amharic": "አመሰግናለሁ", "phonetic": "ah-meh-seg-i-nal-hu", "category": "basics" },
+  "please": { "amharic": "እባክህ", "phonetic": "ebak-h", "category": "basics" },
+  "sorry": { "amharic": "ይቅርታ", "phonetic": "yi-qir-ta", "category": "basics" },
+
+  // --- 2. FAMILY ---
+  "mother": { "amharic": "እናት", "phonetic": "en-naht", "category": "family" },
+  "father": { "amharic": "አባት", "phonetic": "ah-baht", "category": "family" },
+  "baby": { "amharic": "ህፃን", "phonetic": "hits-an", "category": "family" },
+    "sister": { "amharic": "እህት", "phonetic": "eh-hit", "category": "family" },
+    "brother": { "amharic": "ወንድም", "phonetic": "wen-dim", "category": "family" },
+    "uncle": { "amharic": "አጎት", "phonetic": "ah-goht", "category": "family" },
+    "aunt": { "amharic": "አክስት", "phonetic": "ah-kist", "category": "family" },
+    "grandmother": { "amharic": "አያት", "phonetic": "ah-yaht", "category": "family" },
+    "grandfather": { "amharic": "አያት", "phonetic": "ah-yaht", "category": "family" },
+  
+    // --- 2a. PEOPLE ---
+    "friend": { "amharic": "ጓደኛ", "phonetic": "gwah-den-yah", "category": "people" },
+
+  // --- 3. BODY PARTS ---
+  "head": { "amharic": "ራስ", "phonetic": "rahs", "category": "body" },
+  "eyes": { "amharic": "አይን", "phonetic": "ay-in", "category": "body" },
+  "nose": { "amharic": "አፍንጫ", "phonetic": "af-in-ch'a", "category": "body" },
+  "mouth": { "amharic": "አፍ", "phonetic": "af", "category": "body" },
+  "hands": { "amharic": "እጅ", "phonetic": "edj", "category": "body" },
+
+  // --- 4. CLOTHING ---
+  "shirt": { "amharic": "ሸሚዝ", "phonetic": "she-miz", "category": "clothing" },
+  "shoes": { "amharic": "ጫማ", "phonetic": "ch'ah-ma", "category": "clothing" },
+  "hat": { "amharic": "ቆብ", "phonetic": "q'ob", "category": "clothing" },
+
+  // --- 5. COLORS ---
+  "red": { "amharic": "ቀይ", "phonetic": "q'ey", "category": "colors" },
+  "blue": { "amharic": "ሰማያዊ", "phonetic": "se-ma-ya-wi", "category": "colors" },
+  "yellow": { "amharic": "ቢጫ", "phonetic": "bi-ch'ah", "category": "colors" },
+
+  // --- 6. NUMBERS ---
+  "one": { "amharic": "አንድ", "phonetic": "and", "category": "numbers" },
+  "two": { "amharic": "ሁለት", "phonetic": "hu-let", "category": "numbers" },
+  "three": { "amharic": "ሶስት", "phonetic": "sost", "category": "numbers" },
+
+  // --- 7. EMOTIONS ---
+  "happy": { "amharic": "ደስተኛ", "phonetic": "des-te-nya", "category": "emotions" },
+  "sad": { "amharic": "አዘንተኛ", "phonetic": "azen-te-nya", "category": "emotions" },
+
+  // --- 12. FARM ANIMALS ---
+  "cow": { "amharic": "ላም", "phonetic": "lahm", "category": "farm" },
+  "sheep": { "amharic": "በግ", "phonetic": "beg", "category": "farm" },
+  "chicken": { "amharic": "ዶሮ", "phonetic": "doro", "category": "farm" },
+
+  // --- 16. NATURE & WEATHER ---
+  "rain": { "amharic": "ዝናብ", "phonetic": "zi-nab", "category": "nature" },
+  "cloud": { "amharic": "ደመና", "phonetic": "dem-ena", "category": "nature" },
+  "mountain": { "amharic": "ተራራ", "phonetic": "ter-ara", "category": "nature" },
+    "water": { "amharic": "ውሃ", "phonetic": "wu-ha", "category": "nature" },
+    "sun": { "amharic": "ፀሐይ", "phonetic": "tse-hai", "category": "nature" },
+    "moon": { "amharic": "ጨረቃ", "phonetic": "ch'er-eh-q'ah", "category": "nature" },
+    "tree": { "amharic": "ዛፍ", "phonetic": "zahf", "category": "nature" },
+    "flower": { "amharic": "አበባ", "phonetic": "ah-beh-bah", "category": "nature" },
+    "world": { "amharic": "ዓለም", "phonetic": "ah-lem", "category": "nature" },
+
+  // --- 19. TRANSPORT ---
+  "car": { "amharic": "መኪና", "phonetic": "mek-ina", "category": "transport" },
+  "airplane": { "amharic": "አውሮፕላን", "phonetic": "aw-ro-plan", "category": "transport" },
+  "bicycle": { "amharic": "ብስክሌት", "phonetic": "bis-ik-lait", "category": "transport" },
+
+  // --- 22. ACTION VERBS ---
+  "eat": { "amharic": "መብላት", "phonetic": "meb-lat", "category": "actions" },
+  "drink": { "amharic": "መጠጣት", "phonetic": "met-et-at", "category": "actions" },
+  "sleep": { "amharic": "መተኛት", "phonetic": "met-en-yat", "category": "actions" },
+    "run": { "amharic": "መሮጥ", "phonetic": "me-rot", "category": "actions" },
+  
+    // --- 1a. FOOD & MEALS ---
+    "breakfast": { "amharic": "ቁርስ", "phonetic": "q'oors", "category": "food" },
+    "lunch": { "amharic": "ምሳ", "phonetic": "mi-sah", "category": "food" },
+    "dinner": { "amharic": "እራት", "phonetic": "eh-raht", "category": "food" },
+  
+    // --- 23. OBJECTS ---
+    "computer": { "amharic": "ኮምፒውተር", "phonetic": "kom-pyu-ter", "category": "objects" },
+    "book": { "amharic": "መጽሐፍ", "phonetic": "mets-haf", "category": "objects" }
 };
 
-// Game variables
-let wordsToTranslate = Object.keys(translations);
+// Categories as stages (fewest words first)
+const categoriesMap = {};
+Object.keys(translations).forEach(w => {
+    const cat = translations[w].category || 'uncategorized';
+    (categoriesMap[cat] ||= []).push(w);
+});
+const categoriesOrder = Object.keys(categoriesMap).sort((a,b) => categoriesMap[a].length - categoriesMap[b].length);
+let currentCategoryIndex = 0;
+let wordsToTranslate = categoriesMap[categoriesOrder[currentCategoryIndex]];
 let currentWord = wordsToTranslate[Math.floor(Math.random() * wordsToTranslate.length)];
 let currentAmharic = translations[currentWord].amharic;
 let score = 0;
@@ -116,9 +184,8 @@ let dropZoneLetters = [];
 let particles = [];
 
 // Game state
-let currentStage = 1;
 let wordsCompletedInStage = 0;
-const WORDS_PER_STAGE = 3;
+let completedWordsSet = new Set();
 let gameOver = false;
 let restartButton = { x: 0, y: 0, width: 0, height: 0 };
 let exitButton = { x: 0, y: 0, width: 0, height: 0 };
@@ -331,20 +398,26 @@ function checkCompletion() {
 function completeWord() {
     score += 10;
     wordsCompletedInStage++;
+    completedWordsSet.add(currentWord);
     
     // Create success particles
     for (let i = 0; i < 50; i++) {
         particles.push(new Particle(WIDTH / 2, HEIGHT / 2, [GREEN, YELLOW, CYAN, MAGENTA][Math.floor(Math.random() * 4)]));
     }
     
-    // Check stage completion
-    if (wordsCompletedInStage >= WORDS_PER_STAGE) {
-        currentStage = Math.min(currentStage + 1, 5);
+    // Finish category then advance (fewest words first)
+    if (wordsCompletedInStage >= wordsToTranslate.length) {
         wordsCompletedInStage = 0;
+        completedWordsSet.clear();
+        if (currentCategoryIndex < categoriesOrder.length - 1) {
+            currentCategoryIndex++;
+        }
+        wordsToTranslate = categoriesMap[categoriesOrder[currentCategoryIndex]];
     }
-    
-    // Get new word
-    currentWord = wordsToTranslate[Math.floor(Math.random() * wordsToTranslate.length)];
+    // Get new word from remaining
+    const remaining = wordsToTranslate.filter(w => !completedWordsSet.has(w));
+    const pool = remaining.length > 0 ? remaining : wordsToTranslate;
+    currentWord = pool[Math.floor(Math.random() * pool.length)];
     currentAmharic = translations[currentWord].amharic;
     initializeLetters();
 }
@@ -352,10 +425,14 @@ function completeWord() {
 // Restart game
 function restartGame() {
     score = 0;
-    currentStage = 1;
+    currentCategoryIndex = 0;
     wordsCompletedInStage = 0;
+    completedWordsSet.clear();
     gameOver = false;
-    currentWord = wordsToTranslate[Math.floor(Math.random() * wordsToTranslate.length)];
+    wordsToTranslate = categoriesMap[categoriesOrder[currentCategoryIndex]];
+    const remaining = wordsToTranslate.filter(w => !completedWordsSet.has(w));
+    const pool = remaining.length > 0 ? remaining : wordsToTranslate;
+    currentWord = pool[Math.floor(Math.random() * pool.length)];
     currentAmharic = translations[currentWord].amharic;
     initializeLetters();
 }
@@ -573,7 +650,8 @@ function gameLoop() {
         ctx.fillText('Score: ' + score, 20, 35);
         
         ctx.font = 'bold 20px Arial';
-        ctx.fillText(STAGE_CONFIGS[currentStage].description, 20, 65);
+        const stageLabel = `Stage ${currentCategoryIndex + 1}: ${categoriesOrder[currentCategoryIndex]} (${wordsToTranslate.length} words)`;
+        ctx.fillText(stageLabel, 20, 65);
         
         // Draw target word
         ctx.font = 'bold 24px Arial';

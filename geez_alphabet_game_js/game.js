@@ -97,37 +97,109 @@ const translations = {
 }
 */
 const translations = {
-  "breakfast": { "amharic": "ቁርስ", "phonetic": "q'oors" },
-  "hello": { "amharic": "ሀሎ", "phonetic": "hal-lo" },
-  "world": { "amharic": "ዓለም", "phonetic": "ah-lem" },
-  "computer": { "amharic": "ኮምፒውተር", "phonetic": "kom-pyu-ter" },
-  "book": { "amharic": "መጽሐፍ", "phonetic": "mets-haf" },
-  "friend": { "amharic": "ጓደኛ", "phonetic": "gwah-den-yah" },
-  "water": { "amharic": "ውሃ", "phonetic": "wu-ha" },
-  "sun": { "amharic": "ፀሐይ", "phonetic": "tse-hai" },
-  "moon": { "amharic": "ጨረቃ", "phonetic": "ch'er-eh-q'ah" },
-  "tree": { "amharic": "ዛፍ", "phonetic": "zahf" },
-  "flower": { "amharic": "አበባ", "phonetic": "ah-beh-bah" },
-  "lunch": { "amharic": "ምሳ", "phonetic": "mi-sah" },
-  "dinner": { "amharic": "እራት", "phonetic": "eh-raht" },
-  "mother": { "amharic": "እናት", "phonetic": "en-naht" },
-  "father": { "amharic": "አባት", "phonetic": "ah-baht" },
-  "sister": { "amharic": "እህት", "phonetic": "eh-hit" },
-  "brother": { "amharic": "ወንድም", "phonetic": "wen-dim" },
-  "uncle": { "amharic": "አጎት", "phonetic": "ah-goht" },
-  "aunt": { "amharic": "አክስት", "phonetic": "ah-kist" },
-  "grandmother": { "amharic": "አያት", "phonetic": "ah-yaht" },
-  "grandfather": { "amharic": "አያት", "phonetic": "ah-yaht" }
+  // --- 1. BASICS & GREETINGS ---
+  "hello": { "amharic": "ሀሎ", "phonetic": "hal-lo", "category": "basics" },
+  "goodbye": { "amharic": "ደህና ሁን", "phonetic": "deh-na hoon", "category": "basics" },
+  "thank you": { "amharic": "አመሰግናለሁ", "phonetic": "ah-meh-seg-i-nal-hu", "category": "basics" },
+  "please": { "amharic": "እባክህ", "phonetic": "ebak-h", "category": "basics" },
+  "sorry": { "amharic": "ይቅርታ", "phonetic": "yi-qir-ta", "category": "basics" },
+
+  // --- 2. FAMILY ---
+  "mother": { "amharic": "እናት", "phonetic": "en-naht", "category": "family" },
+  "father": { "amharic": "አባት", "phonetic": "ah-baht", "category": "family" },
+  "baby": { "amharic": "ህፃን", "phonetic": "hits-an", "category": "family" },
+    "sister": { "amharic": "እህት", "phonetic": "eh-hit", "category": "family" },
+    "brother": { "amharic": "ወንድም", "phonetic": "wen-dim", "category": "family" },
+    "uncle": { "amharic": "አጎት", "phonetic": "ah-goht", "category": "family" },
+    "aunt": { "amharic": "አክስት", "phonetic": "ah-kist", "category": "family" },
+    "grandmother": { "amharic": "አያት", "phonetic": "ah-yaht", "category": "family" },
+    "grandfather": { "amharic": "አያት", "phonetic": "ah-yaht", "category": "family" },
+  
+    // --- 2a. PEOPLE ---
+    "friend": { "amharic": "ጓደኛ", "phonetic": "gwah-den-yah", "category": "people" },
+
+  // --- 3. BODY PARTS ---
+  "head": { "amharic": "ራስ", "phonetic": "rahs", "category": "body" },
+  "eyes": { "amharic": "አይን", "phonetic": "ay-in", "category": "body" },
+  "nose": { "amharic": "አፍንጫ", "phonetic": "af-in-ch'a", "category": "body" },
+  "mouth": { "amharic": "አፍ", "phonetic": "af", "category": "body" },
+  "hands": { "amharic": "እጅ", "phonetic": "edj", "category": "body" },
+
+  // --- 4. CLOTHING ---
+  "shirt": { "amharic": "ሸሚዝ", "phonetic": "she-miz", "category": "clothing" },
+  "shoes": { "amharic": "ጫማ", "phonetic": "ch'ah-ma", "category": "clothing" },
+  "hat": { "amharic": "ቆብ", "phonetic": "q'ob", "category": "clothing" },
+
+  // --- 5. COLORS ---
+  "red": { "amharic": "ቀይ", "phonetic": "q'ey", "category": "colors" },
+  "blue": { "amharic": "ሰማያዊ", "phonetic": "se-ma-ya-wi", "category": "colors" },
+  "yellow": { "amharic": "ቢጫ", "phonetic": "bi-ch'ah", "category": "colors" },
+
+  // --- 6. NUMBERS ---
+  "one": { "amharic": "አንድ", "phonetic": "and", "category": "numbers" },
+  "two": { "amharic": "ሁለት", "phonetic": "hu-let", "category": "numbers" },
+  "three": { "amharic": "ሶስት", "phonetic": "sost", "category": "numbers" },
+
+  // --- 7. EMOTIONS ---
+  "happy": { "amharic": "ደስተኛ", "phonetic": "des-te-nya", "category": "emotions" },
+  "sad": { "amharic": "አዘንተኛ", "phonetic": "azen-te-nya", "category": "emotions" },
+
+  // --- 12. FARM ANIMALS ---
+  "cow": { "amharic": "ላም", "phonetic": "lahm", "category": "farm" },
+  "sheep": { "amharic": "በግ", "phonetic": "beg", "category": "farm" },
+  "chicken": { "amharic": "ዶሮ", "phonetic": "doro", "category": "farm" },
+
+  // --- 16. NATURE & WEATHER ---
+  "rain": { "amharic": "ዝናብ", "phonetic": "zi-nab", "category": "nature" },
+  "cloud": { "amharic": "ደመና", "phonetic": "dem-ena", "category": "nature" },
+  "mountain": { "amharic": "ተራራ", "phonetic": "ter-ara", "category": "nature" },
+    "water": { "amharic": "ውሃ", "phonetic": "wu-ha", "category": "nature" },
+    "sun": { "amharic": "ፀሐይ", "phonetic": "tse-hai", "category": "nature" },
+    "moon": { "amharic": "ጨረቃ", "phonetic": "ch'er-eh-q'ah", "category": "nature" },
+    "tree": { "amharic": "ዛፍ", "phonetic": "zahf", "category": "nature" },
+    "flower": { "amharic": "አበባ", "phonetic": "ah-beh-bah", "category": "nature" },
+    "world": { "amharic": "ዓለም", "phonetic": "ah-lem", "category": "nature" },
+
+  // --- 19. TRANSPORT ---
+  "car": { "amharic": "መኪና", "phonetic": "mek-ina", "category": "transport" },
+  "airplane": { "amharic": "አውሮፕላን", "phonetic": "aw-ro-plan", "category": "transport" },
+  "bicycle": { "amharic": "ብስክሌት", "phonetic": "bis-ik-lait", "category": "transport" },
+
+  // --- 22. ACTION VERBS ---
+  "eat": { "amharic": "መብላት", "phonetic": "meb-lat", "category": "actions" },
+  "drink": { "amharic": "መጠጣት", "phonetic": "met-et-at", "category": "actions" },
+  "sleep": { "amharic": "መተኛት", "phonetic": "met-en-yat", "category": "actions" },
+    "run": { "amharic": "መሮጥ", "phonetic": "me-rot", "category": "actions" },
+  
+    // --- 1a. FOOD & MEALS ---
+    "breakfast": { "amharic": "ቁርስ", "phonetic": "q'oors", "category": "food" },
+    "lunch": { "amharic": "ምሳ", "phonetic": "mi-sah", "category": "food" },
+    "dinner": { "amharic": "እራት", "phonetic": "eh-raht", "category": "food" },
+  
+    // --- 23. OBJECTS ---
+    "computer": { "amharic": "ኮምፒውተር", "phonetic": "kom-pyu-ter", "category": "objects" },
+    "book": { "amharic": "መጽሐፍ", "phonetic": "mets-haf", "category": "objects" }
 };
+// Build categories map and stage order (fewest words first)
+const categoriesMap = {};
+Object.keys(translations).forEach(word => {
+    const cat = translations[word].category || 'uncategorized';
+    if (!categoriesMap[cat]) categoriesMap[cat] = [];
+    categoriesMap[cat].push(word);
+});
+const categoriesOrder = Object.keys(categoriesMap).sort((a, b) => categoriesMap[a].length - categoriesMap[b].length);
+let currentCategoryIndex = 0;
+let currentCategory = categoriesOrder[currentCategoryIndex];
 
 // Game variables
-let wordsToTranslate = Object.keys(translations);
+let wordsToTranslate = categoriesMap[currentCategory];
 let currentWord = wordsToTranslate[Math.floor(Math.random() * wordsToTranslate.length)];
 let currentAmharic = translations[currentWord].amharic;
 let collectedLetters = '';
 let score = 0;
 let mouseX = 0;
 let mouseY = 0;
+let completedWordsSet = new Set();
 
 // Particle effects
 let particles = [];
@@ -140,10 +212,10 @@ let playerShakeOffset = { x: 0, y: 0 };
 let shakeIntensity = 0;
 let flashTimer = 0;
 
-// Stage system
-let currentStage = 1;
+// Stage system (driven by category order)
+let currentStage = 1; // UI stage number; behavior maps from category index
 let wordsCompletedInStage = 0;
-const WORDS_PER_STAGE = 3;
+function getEffectiveStage() { return Math.min(currentCategoryIndex + 1, 5); }
 let lastSpawnTime = 0;
 let gameOver = false;
 let restartButton = { x: 0, y: 0, width: 0, height: 0 };
@@ -280,14 +352,14 @@ class FallingLetter {
         this.active = false;
         
         // Reset position based on stage
-        if (currentStage <= 3) {
+        if (getEffectiveStage() <= 3) {
             // Stages 1-3: Drop from top only
             this.x = Math.random() * (WIDTH - this.size);
             this.y = 0;
             this.velocityX = 0;
             this.velocityY = 1 + Math.random();
             this.spawnEdge = 'top';
-        } else if (currentStage === 4) {
+        } else if (getEffectiveStage() === 4) {
             // Stage 4: Spawn from top, left, or right (straight movement)
             const edge = Math.floor(Math.random() * 3); // 0=top, 1=left, 2=right
             if (edge === 0) {
@@ -312,7 +384,7 @@ class FallingLetter {
                 this.velocityY = 0;
                 this.spawnEdge = 'right';
             }
-        } else if (currentStage === 5) {
+        } else if (getEffectiveStage() === 5) {
             // Stage 5: Spawn from edges with diagonal/slanted movement
             const edge = Math.floor(Math.random() * 3); // 0=top, 1=left, 2=right
             if (edge === 0) {
@@ -393,7 +465,7 @@ class FallingLetter {
                 const nextExpectedLetter = currentAmharic[collectedLetters.length];
                 
                 // Stage 3+: Check order and apply penalty
-                if (currentStage >= 3) {
+                if (getEffectiveStage() >= 3) {
                     if (this.letter === nextExpectedLetter) {
                         // Correct order
                         if (!collectedLetters.includes(this.letter) || collectedLetters.length < currentAmharic.length) {
@@ -554,7 +626,7 @@ function spawnLetters() {
     if (!wordPronunciationComplete) return;
     
     const currentTime = Date.now();
-    const config = STAGE_CONFIGS[currentStage];
+    const config = STAGE_CONFIGS[getEffectiveStage()];
     
     if (currentTime - lastSpawnTime >= config.spawnInterval) {
         const inactiveLetters = fallingLetters.filter(l => !l.active);
@@ -633,7 +705,7 @@ canvas.addEventListener('touchend', (e) => {
 // Check word completion
 function checkWordCompletion() {
     // Stage 3: Order matters
-    if (currentStage === 3) {
+    if (getEffectiveStage() === 3) {
         if (collectedLetters === currentAmharic) {
             completeWord();
         }
@@ -653,7 +725,7 @@ function completeWord() {
     // Calculate score based on stage and order
     let pointsToAdd = 1;
     
-    if (currentStage === 1 || currentStage === 2) {
+    if (getEffectiveStage() === 1 || getEffectiveStage() === 2) {
         // Half points if letters were collected out of order
         if (collectedOutOfOrder) {
             pointsToAdd = 0.5;
@@ -663,7 +735,7 @@ function completeWord() {
     
     score += pointsToAdd;
     wordsCompletedInStage++;
-    console.log(`Word completed! Score: ${score}, Stage: ${currentStage}, Words in stage: ${wordsCompletedInStage}`);
+    console.log(`Word completed! Score: ${score}, Stage: ${currentCategoryIndex + 1} (${currentCategory}), Words in stage: ${wordsCompletedInStage}`);
     
     // Deactivate all letters and cancel ongoing speech
     fallingLetters.forEach(letter => {
@@ -711,26 +783,35 @@ function completeWord() {
     setTimeout(() => {
         celebrationActive = false;
         
-        // Check for stage progression
-        if (wordsCompletedInStage >= WORDS_PER_STAGE) {
-            // Check for game over after stage 1
-            if (currentStage === 1 && score === 0) {
+        // Progress by category: finish all words in current category, then advance
+        if (wordsCompletedInStage >= wordsToTranslate.length) {
+            // Check for game over after first category
+            if (currentCategoryIndex === 0 && score === 0) {
                 gameOver = true;
-                console.log("Game Over! Score is 0 after Stage 1");
+                console.log("Game Over! Score is 0 after first category");
                 return;
             }
-            
-            if (currentStage < 5) {
-                currentStage++;
+
+            if (currentCategoryIndex < categoriesOrder.length - 1) {
+                currentCategoryIndex++;
+                currentCategory = categoriesOrder[currentCategoryIndex];
+                wordsToTranslate = categoriesMap[currentCategory];
                 wordsCompletedInStage = 0;
-                console.log(`Advanced to Stage ${currentStage}!`);
+                completedWordsSet.clear();
+                currentStage = currentCategoryIndex + 1;
+                console.log(`Advanced to category stage: ${currentCategory}`);
             } else {
+                // Completed all categories; reset within last category
                 wordsCompletedInStage = 0;
+                completedWordsSet.clear();
+                console.log('All categories completed! Cycling last category.');
             }
         }
-        
-        // Load next word
-        currentWord = wordsToTranslate[Math.floor(Math.random() * wordsToTranslate.length)];
+
+        // Load next word from remaining in current category
+        const remaining = wordsToTranslate.filter(w => !completedWordsSet.has(w));
+        const pool = remaining.length > 0 ? remaining : wordsToTranslate;
+        currentWord = pool[Math.floor(Math.random() * pool.length)];
         currentAmharic = translations[currentWord].amharic;
         collectedLetters = '';
         collectedOutOfOrder = false;
@@ -863,7 +944,8 @@ function drawUI() {
     stageGradient.addColorStop(0.5, '#9D84FF');
     stageGradient.addColorStop(1, '#4ECDC4');
     ctx.fillStyle = stageGradient;
-    ctx.fillText(`Stage ${currentStage}`, WIDTH / 2, isMobile ? 20 : 30);
+    const stageLabel = `Stage ${currentCategoryIndex + 1}: ${currentCategory} (${wordsToTranslate.length} words)`;
+    ctx.fillText(stageLabel, WIDTH / 2, isMobile ? 20 : 30);
     
     ctx.shadowColor = 'transparent';
     
@@ -1127,15 +1209,21 @@ function drawGameOver() {
 
 // Restart game function
 function restartGame() {
+    currentCategoryIndex = 0;
+    currentCategory = categoriesOrder[currentCategoryIndex];
+    wordsToTranslate = categoriesMap[currentCategory];
     currentStage = 1;
     wordsCompletedInStage = 0;
     score = 0;
     collectedLetters = '';
     collectedOutOfOrder = false;
     gameOver = false;
+    completedWordsSet.clear();
     
     // Reset word
-    currentWord = wordsToTranslate[Math.floor(Math.random() * wordsToTranslate.length)];
+    const remaining = wordsToTranslate.filter(w => !completedWordsSet.has(w));
+    const pool = remaining.length > 0 ? remaining : wordsToTranslate;
+    currentWord = pool[Math.floor(Math.random() * pool.length)];
     currentAmharic = translations[currentWord].amharic;
     
     // Pronounce the word before starting
@@ -1206,7 +1294,7 @@ function gameLoop() {
 }
 
 // Start the game
-console.log(`Starting game with word: ${currentWord}, Amharic: ${currentAmharic}`);
+console.log(`Starting game in category: ${currentCategory} with word: ${currentWord}, Amharic: ${currentAmharic}`);
 // Pronounce the first word
 wordPronunciationComplete = false;
 pronounceWord(currentWord, translations[currentWord].phonetic);

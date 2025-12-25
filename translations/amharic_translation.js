@@ -252,5 +252,63 @@ const translations = {
   "birthday": { "amharic": "የልደት ቀን", "phonetic": "ye-led-et q'en", "category": "holidays" },
   "gift": { "amharic": "ስጦታ", "phonetic": "sit-ota", "category": "holidays" },
   "party": { "amharic": "ድግስ", "phonetic": "dig-is", "category": "holidays" },
-  "Christmas": { "amharic": "ገና", "phonetic": "gen-a", "category": "holidays" }
+  "Christmas": { "amharic": "ገና", "phonetic": "gen-a", "category": "holidays" },
+
+    // Basic military terms
+    "war": { "amharic": "ጦርነት", "phonetic": "tor-net", "category": "military" },
+    "peace": { "amharic": "ሰላም", "phonetic": "se-lam", "category": "military" },
+    "soldier": { "amharic": "ወታደር", "phonetic": "we-ta-der", "category": "military" },
+    "army": { "amharic": "ሰራዊት", "phonetic": "se-ra-wit", "category": "military" },
+    "battle": { "amharic": "ትግል", "phonetic": "tig-il", "category": "military" },
+    
+    // Weapons
+    "gun": { "amharic": "ሽጉጥ", "phonetic": "shig-ut", "category": "weapons" },
+    "weapon": { "amharic": "የጦር መሣርያ", "phonetic": "ye-tor me-sa-ri-ya", "category": "weapons" },
+    "knife": { "amharic": "ቢላ", "phonetic": "bi-la", "category": "weapons" },
+    "sword": { "amharic": "ነጭ ሰይፍ", "phonetic": "nech seyf", "category": "weapons" },
+    "shield": { "amharic": "ጋሻ", "phonetic": "ga-sha", "category": "weapons" },
+    
+    // Actions
+    "attack": { "amharic": "መምታት", "phonetic": "mem-tat", "category": "actions" },
+    "defend": { "amharic": "መከላከል", "phonetic": "me-ke-la-kel", "category": "actions" },
+    "fight": { "amharic": "መጋጠም", "phonetic": "me-ga-tem", "category": "actions" },
+    "protect": { "amharic": "መጠበቅ", "phonetic": "met-e-beq", "category": "actions" },
+    "retreat": { "amharic": "መመለስ", "phonetic": "me-me-les", "category": "actions" },
+    
+    // Places & units
+    "camp": { "amharic": "ሰፈር", "phonetic": "se-fer", "category": "places" },
+    "enemy": { "amharic": "ጠላት", "phonetic": "te-lat", "category": "people" },
+    "ally": { "amharic": "አጋር", "phonetic": "a-gar", "category": "people" },
+    "front line": { "amharic": "ፊት ለፊት መስመር", "phonetic": "fit le-fit mes-mer", "category": "places" },
+    
+    // Consequences
+    "wound": { "amharic": "ጉዳት", "phonetic": "gu-dat", "category": "medical" },
+    "death": { "amharic": "ሞት", "phonetic": "mot", "category": "medical" },
+    "capture": { "amharic": "መማረክ", "phonetic": "me-ma-rek", "category": "actions" },
+    "victory": { "amharic": "ድል", "phonetic": "dil", "category": "outcomes" },
+    "defeat": { "amharic": "ሽንፈት", "phonetic": "shin-fet", "category": "outcomes" },
+    
+    // Traditional military terms
+    "warrior": { "amharic": "ወታደር", "phonetic": "we-ta-der", "category": "people" },
+    "bravery": { "amharic": "ደፋርነት", "phonetic": "de-far-net", "category": "qualities" },
+    "strategy": { "amharic": "ስልት", "phonetic": "silt", "category": "tactics" },
+    "courage": { "amharic": "ትዕግስት", "phonetic": "tig-ist", "category": "qualities" },
+    
+    // Modern terms
+    "tank": { "amharic": "ታንክ", "phonetic": "tank", "category": "vehicles" },
+    "helicopter": { "amharic": "ሄሊኮፕተር", "phonetic": "he-li-kop-ter", "category": "vehicles" },
+    "uniform": { "amharic": "አንድ ዓይነት ልብስ", "phonetic": "and a-yi-net libs", "category": "equipment" },
+    "commander": { "amharic": "ባለሥልጣን", "phonetic": "ba-le-sil-tan", "category": "people" },
+    
+    // Additional terms
+    "invasion": { "amharic": "መስጠበቅ", "phonetic": "mes-te-beq", "category": "actions" },
+    "resistance": { "amharic": "ተቃውሞ", "phonetic": "te-qaw-mo", "category": "actions" },
+    "occupation": { "amharic": "ቅኝ ግዛት", "phonetic": "qin-y gizat", "category": "political" },
+    "ceasefire": { "amharic": "እልፍ አድማ", "phonetic": "ilif ad-ma", "category": "military" },
+    
+    // Political/Military concepts
+    "revolution": { "amharic": "መቃወም", "phonetic": "me-qa-wem", "category": "political" },
+    "liberation": { "amharic": "ነፃ መውጣት", "phonetic": "ne-tsa mew-tat", "category": "political" },
+    "independence": { "amharic": "ነፃነት", "phonetic": "ne-tsa-net", "category": "political" },
+    "surrender": { "amharic": "ማስገባት", "phonetic": "mas-ge-bat", "category": "actions" }
 };

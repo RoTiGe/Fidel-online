@@ -65,13 +65,28 @@ const GeezAlphabetDict = {
     'ፐ': 'pe', 'ፑ': 'pu', 'ፒ': 'pi', 'ፓ': 'pa', 'ፔ': 'pey', 'ፕ': 'pih', 'ፖ': 'po'
 };
 
+// Detect selected translation key dynamically
+function detectTranslationKey() {
+    try {
+        const keys = Object.keys(translations || {});
+        if (keys.length) {
+            const sample = translations[keys[0]];
+            for (const k of ['amharic','tigrinya','oromo','spanish']) {
+                if (sample && sample[k]) return k;
+            }
+        }
+    } catch (e) {}
+    return 'amharic';
+}
+const translationKey = detectTranslationKey();
+
 // Build unique Geez letters from centralized translations (fallback to dict keys)
-function buildGeezCharactersFromTranslations(translationsObj) {
+function buildGeezCharactersFromTranslations(translationsObj, key) {
     const set = new Set();
     try {
         const entries = Object.values(translationsObj || {});
         entries.forEach(entry => {
-            const am = entry && entry.amharic;
+            const am = entry && entry[key];
             if (typeof am === 'string') {
                 for (const ch of am) {
                     // Skip spaces and punctuation
@@ -129,7 +144,7 @@ let lettersPerBatch = 35; // 5 stages × 7 letters
 let totalLettersCollected = 0;
 let showCongratulations = false;
 // Prefer letters derived from translations; fallback to dict keys
-let geezCharacters = buildGeezCharactersFromTranslations(typeof translations !== 'undefined' ? translations : {});
+let geezCharacters = buildGeezCharactersFromTranslations(typeof translations !== 'undefined' ? translations : {}, translationKey);
 if (!geezCharacters || geezCharacters.length === 0) {
     geezCharacters = Object.keys(GeezAlphabetDict);
 }

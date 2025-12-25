@@ -82,7 +82,20 @@ const GeezAlphabetDict = {
     'ፈ': 'fe', 'ፉ': 'fu', 'ፊ': 'fi', 'ፋ': 'fa', 'ፌ': 'fey', 'ፍ': 'fih', 'ፎ': 'fo',
     'ፐ': 'pe', 'ፑ': 'pu', 'ፒ': 'pi', 'ፓ': 'pa', 'ፔ': 'pey', 'ፕ': 'pih', 'ፖ': 'po'
 };
-// Using centralized translations injected via /translations/amharic_translation.js
+// Using centralized translations injected via selected translation file
+function detectTranslationKey() {
+    try {
+        const keys = Object.keys(translations || {});
+        if (keys.length) {
+            const sample = translations[keys[0]];
+            for (const k of ['amharic','tigrinya','oromo','spanish']) {
+                if (sample && sample[k]) return k;
+            }
+        }
+    } catch (e) {}
+    return 'amharic';
+}
+const translationKey = detectTranslationKey();
 // Build categories map and stage order (fewest words first)
 const categoriesMap = {};
 Object.keys(translations).forEach(word => {
@@ -97,7 +110,7 @@ let currentCategory = categoriesOrder[currentCategoryIndex];
 // Game variables
 let wordsToTranslate = categoriesMap[currentCategory];
 let currentWord = wordsToTranslate[Math.floor(Math.random() * wordsToTranslate.length)];
-let currentAmharic = translations[currentWord].amharic;
+let currentAmharic = translations[currentWord][translationKey];
 let collectedLetters = '';
 let score = 0;
 let mouseX = 0;
@@ -718,7 +731,7 @@ function completeWord() {
         const remaining = wordsToTranslate.filter(w => !completedWordsSet.has(w));
         const pool = remaining.length > 0 ? remaining : wordsToTranslate;
         currentWord = pool[Math.floor(Math.random() * pool.length)];
-        currentAmharic = translations[currentWord].amharic;
+        currentAmharic = translations[currentWord][translationKey];
         collectedLetters = '';
         collectedOutOfOrder = false;
         
@@ -1130,7 +1143,7 @@ function restartGame() {
     const remaining = wordsToTranslate.filter(w => !completedWordsSet.has(w));
     const pool = remaining.length > 0 ? remaining : wordsToTranslate;
     currentWord = pool[Math.floor(Math.random() * pool.length)];
-    currentAmharic = translations[currentWord].amharic;
+    currentAmharic = translations[currentWord][translationKey];
     
     // Pronounce the word before starting
     wordPronunciationComplete = false;

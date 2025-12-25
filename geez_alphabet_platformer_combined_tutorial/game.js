@@ -100,6 +100,19 @@ function loadWordImage(word) {
 // Build categories as stages (fewest words first) — deferred until translations are ready
 let categoriesMap = {};
 let categoriesOrder = [];
+function detectTranslationKey() {
+    try {
+        const keys = Object.keys(translations || {});
+        if (keys.length) {
+            const sample = translations[keys[0]];
+            for (const k of ['amharic','tigrinya','oromo','spanish']) {
+                if (sample && sample[k]) return k;
+            }
+        }
+    } catch (e) {}
+    return 'amharic';
+}
+const translationKey = detectTranslationKey();
 
 // Visual templates cycled across categories
 const visualPalette = [
@@ -152,7 +165,7 @@ function initializeGameData() {
 
     wordsToTranslate = categoriesMap[categoriesOrder[0]] || [];
     currentWord = wordsToTranslate.length ? wordsToTranslate[Math.floor(Math.random() * wordsToTranslate.length)] : '';
-    currentAmharic = currentWord && translations[currentWord] ? translations[currentWord].amharic : '';
+    currentAmharic = currentWord && translations[currentWord] ? translations[currentWord][translationKey] : '';
 
     return true;
 }
@@ -283,7 +296,54 @@ function buildLettersForWord() {
     return arr;
 }
 
+// Portal class (moved earlier to ensure availability before first use)
+class Portal {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.width = 60;
+        this.height = 80;
+        this.active = false;
+        this.animationOffset = 0;
+    }
+
+    update() {
+        this.animationOffset += 0.1;
+    }
+
+    draw(camera) {
+        if (!this.active) return;
+        const screenX = this.x - camera.x;
+        ctx.save();
+        const gradient = ctx.createRadialGradient(
+            screenX + this.width / 2, this.y + this.height / 2, 0,
+            screenX + this.width / 2, this.y + this.height / 2, this.width / 2
+        );
+        gradient.addColorStop(0, 'rgba(138, 43, 226, 0.8)');
+        gradient.addColorStop(1, 'rgba(138, 43, 226, 0.2)');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(screenX, this.y, this.width, this.height);
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 14px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Enter', screenX + this.width / 2, this.y - 10);
+        ctx.restore();
+    }
+
+    checkCollision(player) {
+        if (!this.active) return false;
+        return player.x < this.x + this.width &&
+               player.x + player.width > this.x &&
+               player.y < this.y + this.height &&
+               player.y + player.height > this.y;
+    }
+}
+
 // Level state
+
+// Camera class
+
+
 let platforms = [];
 let letters = [];
 let enemies = [];
@@ -317,7 +377,7 @@ function advanceStage() {
     const cat = categoriesOrder[currentStage];
     const words = categoriesMap[cat] || [];
     currentWord = words.length ? words[Math.floor(Math.random() * words.length)] : '';
-    currentAmharic = currentWord && translations[currentWord] ? translations[currentWord].amharic : '';
+    currentAmharic = currentWord && translations[currentWord] ? translations[currentWord][translationKey] : '';
     collectedLetters = '';
     wordPronunciationComplete = false;
     pronounceWord();
@@ -490,53 +550,6 @@ class Enemy {
     }
 
     checkCollision(player) {
-        return player.x < this.x + this.width &&
-               player.x + player.width > this.x &&
-               player.y < this.y + this.height &&
-               player.y + player.height > this.y;
-    }
-}
-
-// Portal class
-class Portal {
-    constructor(x, y) {
-        this.x = x;
-        this.y = y;
-        this.width = 60;
-        this.height = 80;
-        this.active = false;
-        this.animationOffset = 0;
-    }
-
-    update() {
-        this.animationOffset += 0.1;
-    }
-
-    draw(camera) {
-        if (!this.active) return;
-        
-        const screenX = this.x - camera.x;
-        ctx.save();
-        
-        const gradient = ctx.createRadialGradient(
-            screenX + this.width / 2, this.y + this.height / 2, 0,
-            screenX + this.width / 2, this.y + this.height / 2, this.width / 2
-        );
-        gradient.addColorStop(0, 'rgba(138, 43, 226, 0.8)');
-        gradient.addColorStop(1, 'rgba(138, 43, 226, 0.2)');
-        ctx.fillStyle = gradient;
-        ctx.fillRect(screenX, this.y, this.width, this.height);
-        
-        ctx.fillStyle = 'white';
-        ctx.font = 'bold 14px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText('Enter', screenX + this.width / 2, this.y - 10);
-        
-        ctx.restore();
-    }
-
-    checkCollision(player) {
-        if (!this.active) return false;
         return player.x < this.x + this.width &&
                player.x + player.width > this.x &&
                player.y < this.y + this.height &&

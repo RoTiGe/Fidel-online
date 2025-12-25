@@ -85,6 +85,21 @@ const GeezAlphabetDict = {
 
 // Using centralized translations injected via /translations/amharic_translation.js
 
+// Detect selected translation key dynamically
+function detectTranslationKey() {
+    try {
+        const keys = Object.keys(translations || {});
+        if (keys.length) {
+            const sample = translations[keys[0]];
+            for (const k of ['amharic','tigrinya','oromo','spanish']) {
+                if (sample && sample[k]) return k;
+            }
+        }
+    } catch (e) {}
+    return 'amharic';
+}
+const translationKey = detectTranslationKey();
+
 // Image cache for word visuals
 const wordImages = {};
 let currentWordImage = null;
@@ -146,7 +161,7 @@ const stageTemplates = categoriesOrder.map((cat, i) => ({
 // Game variables
 let wordsToTranslate = categoriesMap[categoriesOrder[0]];
 let currentWord = wordsToTranslate[Math.floor(Math.random() * wordsToTranslate.length)];
-let currentAmharic = translations[currentWord].amharic;
+let currentAmharic = translations[currentWord][translationKey];
 let collectedLetters = '';
 let currentStage = 0;
 let score = 0;
@@ -612,7 +627,7 @@ function spawnEnemy() {
 
 function nextWord() {
     currentWord = wordsToTranslate[Math.floor(Math.random() * wordsToTranslate.length)];
-    currentAmharic = translations[currentWord].amharic;
+    currentAmharic = translations[currentWord][translationKey];
     collectedLetters = '';
     wordPronunciationComplete = false;
     currentWordImage = null;

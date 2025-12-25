@@ -153,6 +153,26 @@
         <h1>🎮 Geez Alphabet Games 🎮</h1>
         <p class="subtitle">Choose Your Learning Adventure!</p>
 
+        <!-- Language Selector -->
+        <div style="background: rgba(255,255,255,0.15); border: 2px solid rgba(255,255,255,0.3); color: white; padding: 14px 16px; border-radius: 12px; margin: 0 auto 24px; max-width: 800px;">
+            <div style="font-weight: bold; margin-bottom: 8px;">Select Language for Translations:</div>
+            <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center;">
+                <label style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <input type="radio" name="lang" value="amharic"> Amharic
+                </label>
+                <label style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <input type="radio" name="lang" value="tigrinya"> Tigrigna
+                </label>
+                <label style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <input type="radio" name="lang" value="oromo"> Oromiffa
+                </label>
+                <label style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <input type="radio" name="lang" value="spanish"> Spanish
+                </label>
+                <span id="langStatus" style="margin-left: auto; opacity: 0.85; font-size: 0.95rem;"></span>
+            </div>
+        </div>
+
         <div class="games-grid">
             <!-- Game 1: Geez Alphabet Game -->
             <a href="geez_alphabet_game_js/index.html" class="game-card">
@@ -242,5 +262,24 @@
             <p style="margin-top: 1rem; opacity: 0.8;">© 2025 Geez Alphabet Games - Educational Gaming Experience</p>
         </div>
     </div>
+    <script>
+        (function() {
+            const radios = document.querySelectorAll('input[name="lang"]');
+            const statusEl = document.getElementById('langStatus');
+            const saved = localStorage.getItem('selectedLanguage') || 'amharic';
+            const valid = new Set(['amharic','tigrinya','oromo','spanish']);
+            const current = valid.has(saved) ? saved : 'amharic';
+            radios.forEach(r => { r.checked = r.value === current; });
+            statusEl.textContent = `Current: ${current.charAt(0).toUpperCase() + current.slice(1)}`;
+
+            radios.forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    const val = e.target.value;
+                    localStorage.setItem('selectedLanguage', val);
+                    statusEl.textContent = `Current: ${val.charAt(0).toUpperCase() + val.slice(1)}`;
+                });
+            });
+        })();
+    </script>
 </body>
 </html>

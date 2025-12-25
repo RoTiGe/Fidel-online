@@ -264,8 +264,47 @@
         </div>
     </div>
     
-    <script src="/translations/amharic_translation.js"></script>
-    <script src="/js/platformer-game.js"></script>
+    <script>
+        (function() {
+            function getSelectedLang() {
+                var url;
+                try { url = new URL(window.location.href); } catch (_) { url = null; }
+                var qp = url ? url.searchParams.get('lang') : null;
+                var saved = localStorage.getItem('selectedLanguage') || 'amharic';
+                var valid = ['amharic','tigrinya','oromo','spanish'];
+                var chosen = (qp && valid.indexOf(qp) !== -1) ? qp : saved;
+                return valid.indexOf(chosen) !== -1 ? chosen : 'amharic';
+            }
+
+            var map = {
+                amharic: '/translations/amharic_translation.js',
+                tigrinya: '/translations/tigrigna_translation.js',
+                oromo: '/translations/Oromiffa_translations.js',
+                spanish: '/translations/spanish_translation.js'
+            };
+
+            var lang = getSelectedLang();
+            var t = document.createElement('script');
+            t.src = map[lang] || map['amharic'];
+            t.onload = function() {
+                var g = document.createElement('script');
+                g.src = '/js/platformer-game.js';
+                document.body.appendChild(g);
+            };
+            t.onerror = function() {
+                console.warn('Translation load failed; falling back to Amharic');
+                var fb = document.createElement('script');
+                fb.src = map['amharic'];
+                fb.onload = function() {
+                    var g = document.createElement('script');
+                    g.src = '/js/platformer-game.js';
+                    document.body.appendChild(g);
+                };
+                document.body.appendChild(fb);
+            };
+            document.body.appendChild(t);
+        })();
+    </script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const achievementsButton = document.getElementById('achievementsButton');

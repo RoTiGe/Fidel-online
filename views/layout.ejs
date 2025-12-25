@@ -15,5 +15,41 @@
     </main>
     
     <%- include('partials/footer') %>
+    <script>
+        (function() {
+            function labelFor(key) {
+                var map = { amharic: 'Amharic', tigrinya: 'Tigrigna', oromo: 'Oromiffa', spanish: 'Spanish' };
+                return map[key] || key;
+            }
+
+            function initLanguageSwitcher() {
+                var select = document.getElementById('languageSelect');
+                var status = document.getElementById('languageStatus');
+                if (!select) return;
+                var saved = localStorage.getItem('selectedLanguage') || 'amharic';
+                select.value = saved;
+                if (status) status.textContent = '(' + labelFor(saved) + ')';
+
+                select.addEventListener('change', function(e) {
+                    var key = e.target.value;
+                    localStorage.setItem('selectedLanguage', key);
+                    if (status) status.textContent = '(' + labelFor(key) + ')';
+
+                    var iframes = document.querySelectorAll('iframe');
+                    if (iframes.length) {
+                        iframes.forEach(function(f) {
+                            try { f.contentWindow.location.reload(); }
+                            catch (_) { f.src = f.src; }
+                        });
+                    } else {
+                        // For pages that include translations directly, refresh to apply change
+                        window.location.reload();
+                    }
+                });
+            }
+
+            window.addEventListener('DOMContentLoaded', initLanguageSwitcher);
+        })();
+    </script>
 </body>
 </html>

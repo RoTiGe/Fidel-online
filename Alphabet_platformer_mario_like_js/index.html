@@ -468,8 +468,38 @@
         </div>
     </div>
 
-    <script src="/translations/amharic_translation.js"></script>
-    <script src="game.js"></script>
+    <script>
+        (function() {
+            const params = new URLSearchParams(location.search);
+            const saved = localStorage.getItem('selectedLanguage');
+            const lang = params.get('lang') || saved || 'amharic';
+            const map = {
+                amharic: '/translations/amharic_translation.js',
+                tigrinya: '/translations/tigrigna_translation.js',
+                oromo: '/translations/Oromiffa_translations.js',
+                spanish: '/translations/spanish_translation.js'
+            };
+            const transSrc = map[lang] || map['amharic'];
+            const s1 = document.createElement('script');
+            s1.src = transSrc;
+            s1.onload = function() {
+                const s2 = document.createElement('script');
+                s2.src = 'game.js';
+                document.body.appendChild(s2);
+            };
+            s1.onerror = function() {
+                const fallback = document.createElement('script');
+                fallback.src = map['amharic'];
+                fallback.onload = function() {
+                    const s2 = document.createElement('script');
+                    s2.src = 'game.js';
+                    document.body.appendChild(s2);
+                };
+                document.body.appendChild(fallback);
+            };
+            document.body.appendChild(s1);
+        })();
+    </script>
     <script>
         // Game State
         let gamePaused = false;

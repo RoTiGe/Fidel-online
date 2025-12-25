@@ -84,6 +84,19 @@ const LetterPronunciations = {
 
 // Categories as stages (fewest words first)
 const categoriesMap = {};
+function detectTranslationKey() {
+    try {
+        const keys = Object.keys(translations || {});
+        if (keys.length) {
+            const sample = translations[keys[0]];
+            for (const k of ['amharic','tigrinya','oromo','spanish']) {
+                if (sample && sample[k]) return k;
+            }
+        }
+    } catch (e) {}
+    return 'amharic';
+}
+const translationKey = detectTranslationKey();
 Object.keys(translations).forEach(w => {
     const cat = translations[w].category || 'uncategorized';
     (categoriesMap[cat] ||= []).push(w);
@@ -92,7 +105,7 @@ const categoriesOrder = Object.keys(categoriesMap).sort((a,b) => categoriesMap[a
 let currentCategoryIndex = 0;
 let wordsToTranslate = categoriesMap[categoriesOrder[currentCategoryIndex]];
 let currentWord = wordsToTranslate[Math.floor(Math.random() * wordsToTranslate.length)];
-let currentAmharic = translations[currentWord].amharic;
+let currentAmharic = translations[currentWord][translationKey];
 let score = 0;
 let draggedLetter = null;
 let mouseX = 0;
@@ -344,7 +357,7 @@ function completeWord() {
     const remaining = wordsToTranslate.filter(w => !completedWordsSet.has(w));
     const pool = remaining.length > 0 ? remaining : wordsToTranslate;
     currentWord = pool[Math.floor(Math.random() * pool.length)];
-    currentAmharic = translations[currentWord].amharic;
+    currentAmharic = translations[currentWord][translationKey];
     initializeLetters();
 }
 
@@ -359,7 +372,7 @@ function restartGame() {
     const remaining = wordsToTranslate.filter(w => !completedWordsSet.has(w));
     const pool = remaining.length > 0 ? remaining : wordsToTranslate;
     currentWord = pool[Math.floor(Math.random() * pool.length)];
-    currentAmharic = translations[currentWord].amharic;
+    currentAmharic = translations[currentWord][translationKey];
     initializeLetters();
 }
 

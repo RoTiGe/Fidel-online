@@ -95,11 +95,16 @@ const translations = {
     "grandfather": { "amharic": "አያት", "phonetic": "ah-yaht", "category": "family" }
 };
 
+// Prefer centralized translations loaded via /translations/amharic_translation.js
+function getTranslations() {
+    return (typeof window !== 'undefined' && window.translations) ? window.translations : translations;
+}
+
 // Game variables
 // Categories as stages (fewest words first)
 const categoriesMap = {};
-Object.keys(translations).forEach(w => {
-    const cat = translations[w].category || 'uncategorized';
+Object.keys(getTranslations()).forEach(w => {
+    const cat = getTranslations()[w].category || 'uncategorized';
     (categoriesMap[cat] ||= []).push(w);
 });
 const categoriesOrder = Object.keys(categoriesMap).sort((a,b) => categoriesMap[a].length - categoriesMap[b].length);
@@ -108,7 +113,7 @@ let currentCategory = categoriesOrder[currentCategoryIndex];
 let completedWordsSet = new Set();
 let wordsToTranslate = categoriesMap[currentCategory];
 let currentWord = wordsToTranslate[Math.floor(Math.random() * wordsToTranslate.length)];
-let currentAmharic = translations[currentWord].amharic;
+let currentAmharic = getTranslations()[currentWord].amharic;
 let score = 0;
 let draggedLetter = null;
 let mouseX = 0;
@@ -299,7 +304,8 @@ function initializeLetters() {
     
     // Pronounce the word only after Start button is clicked
     if (gameStarted) {
-        pronounceWord(currentWord, translations[currentWord].phonetic);
+        const t = getTranslations();
+        pronounceWord(currentWord, t[currentWord].phonetic);
     }
 }
 
@@ -360,7 +366,7 @@ function completeWord() {
     // Get new word from remaining
     const pool = categoriesMap[currentCategory].filter(w => !completedWordsSet.has(w));
     currentWord = pool[Math.floor(Math.random() * pool.length)];
-    currentAmharic = translations[currentWord].amharic;
+    currentAmharic = getTranslations()[currentWord].amharic;
     initializeLetters();
 }
 
@@ -374,7 +380,7 @@ function restartGame() {
     currentStage = 1;
     gameOver = false;
     currentWord = wordsToTranslate[Math.floor(Math.random() * wordsToTranslate.length)];
-    currentAmharic = translations[currentWord].amharic;
+    currentAmharic = getTranslations()[currentWord].amharic;
     initializeLetters();
 }
 
@@ -601,7 +607,7 @@ function gameLoop() {
         ctx.fillText('Spell: ' + currentWord, WIDTH / 2, 30);
         ctx.fillStyle = BLACK;
         ctx.font = '18px Arial';
-        ctx.fillText('(' + translations[currentWord].phonetic + ')', WIDTH / 2, 55);
+        ctx.fillText('(' + getTranslations()[currentWord].phonetic + ')', WIDTH / 2, 55);
         
         // Draw drop zone
         drawDropZone();

@@ -25,7 +25,7 @@ function startGame() {
     resizeCanvas();
     // Start pronunciation only after player clicks start
     wordPronunciationComplete = false;
-    pronounceWord(currentWord, translations[currentWord].phonetic);
+    pronounceWord(currentWord, getTranslations()[currentWord].phonetic);
     lastSpawnTime = Date.now();
 }
 window.startGame = startGame;
@@ -124,11 +124,16 @@ const translations = {
     "grandfather": { "amharic": "አያት", "phonetic": "ah-yaht", "category": "family" }
 };
 
+// Prefer centralized translations loaded via /translations/amharic_translation.js
+function getTranslations() {
+    return (typeof window !== 'undefined' && window.translations) ? window.translations : translations;
+}
+
 // Game variables
 // Categories as stages (fewest words first)
 const categoriesMap = {};
-Object.keys(translations).forEach(w => {
-    const cat = translations[w].category || 'uncategorized';
+Object.keys(getTranslations()).forEach(w => {
+    const cat = getTranslations()[w].category || 'uncategorized';
     (categoriesMap[cat] ||= []).push(w);
 });
 const categoriesOrder = Object.keys(categoriesMap).sort((a,b) => categoriesMap[a].length - categoriesMap[b].length);
@@ -137,7 +142,7 @@ let currentCategory = categoriesOrder[currentCategoryIndex];
 let completedWordsSet = new Set();
 let wordsToTranslate = categoriesMap[currentCategory];
 let currentWord = wordsToTranslate[Math.floor(Math.random() * wordsToTranslate.length)];
-let currentAmharic = translations[currentWord].amharic;
+let currentAmharic = getTranslations()[currentWord].amharic;
 let collectedLetters = '';
 let score = 0;
 let mouseX = 0;
@@ -719,7 +724,7 @@ function completeWord() {
     }
     
     // Pronounce the completed word again as celebration
-    pronounceWord(currentWord, translations[currentWord].phonetic);
+    pronounceWord(currentWord, getTranslations()[currentWord].phonetic);
     
     // Delay next word/category transition
     setTimeout(() => {
@@ -739,13 +744,13 @@ function completeWord() {
         // Load next word from remaining
         const pool = categoriesMap[currentCategory].filter(w => !completedWordsSet.has(w));
         currentWord = pool[Math.floor(Math.random() * pool.length)];
-        currentAmharic = translations[currentWord].amharic;
+        currentAmharic = getTranslations()[currentWord].amharic;
         collectedLetters = '';
         collectedOutOfOrder = false;
         
         // Pronounce the new word before spawning letters
         wordPronunciationComplete = false;
-        pronounceWord(currentWord, translations[currentWord].phonetic);
+        pronounceWord(currentWord, getTranslations()[currentWord].phonetic);
         
         // Reset all falling letters with the new word's letters
         fallingLetters.forEach(letter => letter.reset());
@@ -1148,11 +1153,11 @@ function restartGame() {
     
     // Reset word
     currentWord = wordsToTranslate[Math.floor(Math.random() * wordsToTranslate.length)];
-    currentAmharic = translations[currentWord].amharic;
+    currentAmharic = getTranslations()[currentWord].amharic;
     
     // Pronounce the word before starting
     wordPronunciationComplete = false;
-    pronounceWord(currentWord, translations[currentWord].phonetic);
+    pronounceWord(currentWord, getTranslations()[currentWord].phonetic);
     
     // Reset all falling letters
     fallingLetters.forEach(letter => {

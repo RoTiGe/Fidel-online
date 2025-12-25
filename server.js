@@ -18,6 +18,8 @@ app.use('/geez_alphabet_platformer_combined_tutorial', express.static(path.join(
 app.use('/geez_alphabet_game_js', express.static(path.join(__dirname, 'geez_alphabet_game_js')));
 app.use('/geez_alphabet_derder', express.static(path.join(__dirname, 'geez_alphabet_derder')));
 app.use('/Alphabet_platformer_mario_like_js', express.static(path.join(__dirname, 'Alphabet_platformer_mario_like_js')));
+// Serve centralized translations
+app.use('/translations', express.static(path.join(__dirname, 'translations')));
 
 // Routes
 app.get('/', (req, res) => {

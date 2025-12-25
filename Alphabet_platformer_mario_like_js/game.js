@@ -65,6 +65,32 @@ const GeezAlphabetDict = {
     'ፐ': 'pe', 'ፑ': 'pu', 'ፒ': 'pi', 'ፓ': 'pa', 'ፔ': 'pey', 'ፕ': 'pih', 'ፖ': 'po'
 };
 
+// Build unique Geez letters from centralized translations (fallback to dict keys)
+function buildGeezCharactersFromTranslations(translationsObj) {
+    const set = new Set();
+    try {
+        const entries = Object.values(translationsObj || {});
+        entries.forEach(entry => {
+            const am = entry && entry.amharic;
+            if (typeof am === 'string') {
+                for (const ch of am) {
+                    // Skip spaces and punctuation
+                    if (/\s/.test(ch)) continue;
+                    // Ethiopic Unicode block filter for Geez letters
+                    const cp = ch.codePointAt(0);
+                    if (cp >= 0x1200 && cp <= 0x137F) {
+                        set.add(ch);
+                    }
+                }
+            }
+        });
+    } catch (e) {
+        console.warn('Could not derive letters from translations:', e);
+    }
+    // Stable order by code point
+    return Array.from(set).sort((a, b) => a.codePointAt(0) - b.codePointAt(0));
+}
+
 // Game stages configuration
 const stageTemplates = [
     { name: 'Morning Sky', bgColor: '#87CEEB', coinColor: '#FFD700', platformColor: '#8B4513' },
@@ -93,18 +119,23 @@ function generateStageClouds() {
 
 // Randomize starting stage at multiples of 7 (letter families)
 function getRandomLetterFamilyStage() {
-    const totalFamilies = Math.floor(Object.keys(GeezAlphabetDict).length / 7);
+    const totalFamilies = Math.floor((Array.isArray(geezCharacters) ? geezCharacters.length : Object.keys(GeezAlphabetDict).length) / 7) || 1;
     return Math.floor(Math.random() * totalFamilies) * 7;
 }
 
 let currentStage = 0;
 let coinsPerStage = 7;
 let lettersPerBatch = 35; // 5 stages × 7 letters
-let currentBatch = Math.floor(getRandomLetterFamilyStage() / lettersPerBatch);
-let stageOffset = getRandomLetterFamilyStage() % lettersPerBatch; // Track offset within batch
 let totalLettersCollected = 0;
 let showCongratulations = false;
-const geezCharacters = Object.keys(GeezAlphabetDict);
+// Prefer letters derived from translations; fallback to dict keys
+let geezCharacters = buildGeezCharactersFromTranslations(typeof translations !== 'undefined' ? translations : {});
+if (!geezCharacters || geezCharacters.length === 0) {
+    geezCharacters = Object.keys(GeezAlphabetDict);
+}
+// Compute batch and offset based on available letters
+let currentBatch = Math.floor(getRandomLetterFamilyStage() / lettersPerBatch);
+let stageOffset = getRandomLetterFamilyStage() % lettersPerBatch; // Track offset within batch
 const stages = stageTemplates;
 
 canvas.width = SCREEN_WIDTH;

@@ -1,4 +1,6 @@
 const translations = {
+// ...existing code...
+
   // --- 1. BASICS & GREETINGS ---
   "hello": { "oromo": "Akkam", "phonetic": "ak-kam", "category": "basics" },
   "goodbye": { "oromo": "Nagaatti", "phonetic": "na-gaat-ti", "category": "basics" },
@@ -349,3 +351,4 @@ const translations = {
     "uniform": { "oromo": "Yuunifoormii", "phonetic": "yuu-ni-foor-mii", "category": "equipment" },
     "commander": { "oromo": "Komandaaraa", "phonetic": "ko-man-daa-raa", "category": "people" }
 };
+window.translations = translations;

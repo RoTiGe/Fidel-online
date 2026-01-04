@@ -1,4 +1,6 @@
 const translations = {
+// ...existing code...
+
   // --- 1. BASICS & GREETINGS ---
   "hello": { "tigrinya": "ሰላም", "phonetic": "se-lam", "category": "basics" },
   "goodbye": { "tigrinya": "ደሓን ኩን", "phonetic": "de-han koon", "category": "basics" },
@@ -331,3 +333,4 @@ const translations = {
     "revolution": { "tigrinya": "ዕቈባ", "phonetic": "e-qwe-ba", "category": "political" }
 
 };
+window.translations = translations;

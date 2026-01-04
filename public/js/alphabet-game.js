@@ -74,55 +74,6 @@ const GeezAlphabetDict = {
     'ፈ': 'fe', 'ፉ': 'fu', 'ፊ': 'fi', 'ፋ': 'fa', 'ፌ': 'fey', 'ፍ': 'fih', 'ፎ': 'fo',
     'ፐ': 'pe', 'ፑ': 'pu', 'ፒ': 'pi', 'ፓ': 'pa', 'ፔ': 'pey', 'ፕ': 'pih', 'ፖ': 'po'
 };
-/*
-// Translations
-const translations = {
-   "breakfast": "ቁርስ",
-  "hello": "ሀሎ",
-  "world": "ዓለም",
-  "computer": "ኮምፒውተር",
-  "book": "መጽሐፍ",
-  "friend": "ጓደኛ",
-  "water": "ውሃ",
-  "sun": "ፀሐይ",
-  "moon": "ጨረቃ",
-  "tree": "ዛፍ",
-  "flower": "አበባ",
-  "lunch": "ምሳ",
-  "dinner": "እራት",
-  "mother": "እናት",
-  "father": "አባት",
-  "sister": "እህት",
-  "brother": "ወንድም",
-  "uncle": "አጎት",
-  "aunt": "አክስት",
-  "grandmother": "አያት",
-  "grandfather": "አያት" 
-}
-*/
-const translations = {
-    "breakfast": { "amharic": "ቁርስ", "phonetic": "q'oors", "category": "food" },
-    "hello": { "amharic": "ሀሎ", "phonetic": "hal-lo", "category": "basics" },
-    "world": { "amharic": "ዓለም", "phonetic": "ah-lem", "category": "nature" },
-    "computer": { "amharic": "ኮምፒውተር", "phonetic": "kom-pyu-ter", "category": "objects" },
-    "book": { "amharic": "መጽሐፍ", "phonetic": "mets-haf", "category": "objects" },
-    "friend": { "amharic": "ጓደኛ", "phonetic": "gwah-den-yah", "category": "people" },
-    "water": { "amharic": "ውሃ", "phonetic": "wu-ha", "category": "nature" },
-    "sun": { "amharic": "ፀሐይ", "phonetic": "tse-hai", "category": "nature" },
-    "moon": { "amharic": "ጨረቃ", "phonetic": "ch'er-eh-q'ah", "category": "nature" },
-    "tree": { "amharic": "ዛፍ", "phonetic": "zahf", "category": "nature" },
-    "flower": { "amharic": "አበባ", "phonetic": "ah-beh-bah", "category": "nature" },
-    "lunch": { "amharic": "ምሳ", "phonetic": "mi-sah", "category": "food" },
-    "dinner": { "amharic": "እራት", "phonetic": "eh-raht", "category": "food" },
-    "mother": { "amharic": "እናት", "phonetic": "en-naht", "category": "family" },
-    "father": { "amharic": "አባት", "phonetic": "ah-baht", "category": "family" },
-    "sister": { "amharic": "እህት", "phonetic": "eh-hit", "category": "family" },
-    "brother": { "amharic": "ወንድም", "phonetic": "wen-dim", "category": "family" },
-    "uncle": { "amharic": "አጎት", "phonetic": "ah-goht", "category": "family" },
-    "aunt": { "amharic": "አክስት", "phonetic": "ah-kist", "category": "family" },
-    "grandmother": { "amharic": "አያት", "phonetic": "ah-yaht", "category": "family" },
-    "grandfather": { "amharic": "አያት", "phonetic": "ah-yaht", "category": "family" }
-};
 
 // Prefer centralized translations loaded via /translations/amharic_translation.js
 function getTranslations() {

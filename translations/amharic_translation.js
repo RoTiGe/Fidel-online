@@ -1,4 +1,8 @@
 const translations = {
+// ...existing code...
+// (translations object continues...)
+
+
   // --- 1. BASICS & GREETINGS ---
   "hello": { "amharic": "ሀሎ", "phonetic": "hal-lo", "category": "basics" },
   "goodbye": { "amharic": "ደህና ሁን", "phonetic": "deh-na hoon", "category": "basics" },
@@ -312,3 +316,4 @@ const translations = {
     "independence": { "amharic": "ነፃነት", "phonetic": "ne-tsa-net", "category": "political" },
     "surrender": { "amharic": "ማስገባት", "phonetic": "mas-ge-bat", "category": "actions" }
 };
+window.translations = translations;

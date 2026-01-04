@@ -13,25 +13,37 @@ const JUMP_STRENGTH = -12;
 const PLAYER_SPEED = 5;
 
 // Set canvas to fullscreen
+
 function resizeCanvas() {
     SCREEN_WIDTH = window.innerWidth;
     SCREEN_HEIGHT = window.innerHeight;
     WORLD_WIDTH = SCREEN_WIDTH * 3;
     canvas.width = SCREEN_WIDTH;
     canvas.height = SCREEN_HEIGHT;
+    // If the game has started, re-setup the stage to realign platforms with new height
+    if (gameStarted) {
+        setupStage();
+    }
 }
 resizeCanvas();
 window.addEventListener('resize', resizeCanvas);
 
 // Start game function (called when continue button is clicked)
 function startGame() {
-    document.getElementById('instructionsModal').classList.add('hidden');
+    console.log('Start button clicked');
+    const modal = document.getElementById('instructionsModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+    }
     // Ensure translations are loaded and data initialized before starting
     const attemptInit = () => {
         if (initializeGameData()) {
             gameStarted = true;
+            console.log('Game started successfully');
             resizeCanvas();
         } else {
+            console.log('Waiting for translations...');
             setTimeout(attemptInit, 50);
         }
     };
@@ -153,7 +165,7 @@ function initializeGameData() {
         const cat = translations[w].category || 'uncategorized';
         (categoriesMap[cat] ||= []).push(w);
     });
-    categoriesOrder = Object.keys(categoriesMap).sort((a,b) => categoriesMap[a].length - categoriesMap[b].length);
+    categoriesOrder = Object.keys(categoriesMap).sort(() => Math.random() - 0.5);
 
     stageTemplates = categoriesOrder.map((cat, i) => ({
         name: `${cat[0].toUpperCase()}${cat.slice(1)}`,
@@ -212,6 +224,9 @@ class Player {
         if (keys['ArrowLeft'] || keys['a'] || keys['A']) this.vx = -PLAYER_SPEED;
         if (keys['ArrowRight'] || keys['d'] || keys['D']) this.vx = PLAYER_SPEED;
 
+        // Store previous position for collision detection
+        const prevY = this.y;
+
         // Apply physics
         this.vy += GRAVITY;
         this.x += this.vx;
@@ -228,9 +243,9 @@ class Player {
         this.onGround = false;
         for (const p of platforms) {
             const withinX = this.x < p.x + p.width && this.x + this.width > p.x;
-            const wasAbove = this.y + this.height <= p.y;
-            const willOverlapY = this.y + this.height >= p.y && this.y + this.height <= p.y + p.height + 10;
-            if (withinX && wasAbove && willOverlapY && this.vy >= 0) {
+            const wasAbove = prevY + this.height <= p.y; // Use previous position
+            const isNowBelowOrAt = this.y + this.height >= p.y;
+            if (withinX && wasAbove && isNowBelowOrAt && this.vy >= 0) {
                 this.y = p.y - this.height;
                 this.vy = 0;
                 this.onGround = true;
@@ -256,16 +271,59 @@ class Letter {
         this.width = 36;
         this.height = 36;
         this.collected = false;
+        this.pulseAnimation = 0;
     }
-    draw(camera, themeColor) {
+    draw(camera, themeColor, isNext = false) {
         if (this.collected) return;
         const screenX = this.x - camera.x;
+        
+        // Draw pulsing indicator for next letter
+        if (isNext) {
+            this.pulseAnimation += 0.1;
+            const pulse = Math.sin(this.pulseAnimation) * 8 + 32;
+            
+            ctx.save();
+            ctx.translate(screenX + this.width / 2, this.y + this.height / 2);
+            
+            // Draw circling arrow with thicker line
+            ctx.strokeStyle = '#FF0000';
+            ctx.lineWidth = 4;
+            ctx.shadowColor = '#FF0000';
+            ctx.shadowBlur = 10;
+            
+            // Rotate the arc
+            ctx.rotate(this.pulseAnimation);
+            
+            ctx.beginPath();
+            ctx.arc(0, 0, pulse, 0, Math.PI * 1.5);
+            ctx.stroke();
+            
+            // Draw arrow head
+            const arrowX = pulse * Math.cos(Math.PI * 1.5);
+            const arrowY = pulse * Math.sin(Math.PI * 1.5);
+            ctx.fillStyle = '#FF0000';
+            ctx.beginPath();
+            ctx.moveTo(arrowX, arrowY);
+            ctx.lineTo(arrowX - 12, arrowY - 8);
+            ctx.lineTo(arrowX + 8, arrowY - 12);
+            ctx.fill();
+            
+            ctx.restore();
+        }
+        
         ctx.save();
         ctx.translate(screenX + this.width / 2, this.y + this.height / 2);
-        ctx.fillStyle = themeColor;
+        ctx.fillStyle = isNext ? '#FFD700' : themeColor;
         ctx.beginPath();
         ctx.arc(0, 0, 20, 0, Math.PI * 2);
         ctx.fill();
+        
+        // Add glow effect for next letter
+        if (isNext) {
+            ctx.shadowColor = '#FFD700';
+            ctx.shadowBlur = 15;
+        }
+        
         ctx.fillStyle = 'black';
         ctx.font = 'bold 20px NotoSansEthiopic, Arial';
         ctx.textAlign = 'center';
@@ -287,11 +345,46 @@ function buildLettersForWord() {
     const arr = [];
     if (!currentAmharic) return arr;
     const chars = Array.from(currentAmharic);
-    const startX = 300;
-    const step = 120;
-    const baseY = SCREEN_HEIGHT - 240;
+    
+    // Platform positions - each platform can hold ONE letter
+    const availablePositions = [
+        { x: 550, y: SCREEN_HEIGHT - 240, type: 'platform1' },  // First raised platform (left)
+        { x: 700, y: SCREEN_HEIGHT - 240, type: 'platform1' },  // First raised platform (right)
+        { x: 950, y: SCREEN_HEIGHT - 300, type: 'platform2' },  // Second raised platform (left)
+        { x: 1100, y: SCREEN_HEIGHT - 300, type: 'platform2' }, // Second raised platform (right)
+        // Ground positions (small probability)
+        { x: 200, y: SCREEN_HEIGHT - 140, type: 'ground' },
+        { x: 1400, y: SCREEN_HEIGHT - 140, type: 'ground' },
+        { x: 1800, y: SCREEN_HEIGHT - 140, type: 'ground' }
+    ];
+    
+    // Shuffle and assign positions, ensuring no two letters on same raised platform
+    const usedPlatforms = new Set();
+    const shuffledPositions = [...availablePositions].sort(() => Math.random() - 0.5);
+    
     for (let i = 0; i < chars.length; i++) {
-        arr.push(new Letter(chars[i], startX + i * step, baseY));
+        // Try to find a position that hasn't been used (for platforms)
+        let position = null;
+        for (const pos of shuffledPositions) {
+            // For ground, allow multiple letters (but with lower priority)
+            if (pos.type === 'ground' && Math.random() < 0.2) {
+                position = pos;
+                break;
+            }
+            // For platforms, ensure not already used
+            if (pos.type !== 'ground' && !usedPlatforms.has(pos.type + '_' + pos.x)) {
+                position = pos;
+                usedPlatforms.add(pos.type + '_' + pos.x);
+                break;
+            }
+        }
+        
+        // Fallback to any available position if none found
+        if (!position) {
+            position = shuffledPositions[i % shuffledPositions.length];
+        }
+        
+        arr.push(new Letter(chars[i], position.x, position.y));
     }
     return arr;
 }
@@ -314,19 +407,45 @@ class Portal {
     draw(camera) {
         if (!this.active) return;
         const screenX = this.x - camera.x;
+        
+        // Only draw if portal is on screen
+        if (screenX < -this.width || screenX > SCREEN_WIDTH) return;
+        
         ctx.save();
+        
+        // Animated rotating gradient background
         const gradient = ctx.createRadialGradient(
             screenX + this.width / 2, this.y + this.height / 2, 0,
-            screenX + this.width / 2, this.y + this.height / 2, this.width / 2
+            screenX + this.width / 2, this.y + this.height / 2, this.width
         );
-        gradient.addColorStop(0, 'rgba(138, 43, 226, 0.8)');
-        gradient.addColorStop(1, 'rgba(138, 43, 226, 0.2)');
+        gradient.addColorStop(0, 'rgba(138, 43, 226, 0.9)');
+        gradient.addColorStop(0.5, 'rgba(75, 0, 130, 0.7)');
+        gradient.addColorStop(1, 'rgba(138, 43, 226, 0.3)');
         ctx.fillStyle = gradient;
-        ctx.fillRect(screenX, this.y, this.width, this.height);
+        
+        // Draw portal rectangle with pulsing effect
+        const pulseSize = Math.sin(this.animationOffset) * 5;
+        ctx.fillRect(
+            screenX - pulseSize / 2, 
+            this.y - pulseSize / 2, 
+            this.width + pulseSize, 
+            this.height + pulseSize
+        );
+        
+        // Draw border
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(screenX, this.y, this.width, this.height);
+        
+        // Draw "Enter" text
         ctx.fillStyle = 'white';
-        ctx.font = 'bold 14px Arial';
+        ctx.font = 'bold 16px Arial';
         ctx.textAlign = 'center';
-        ctx.fillText('Enter', screenX + this.width / 2, this.y - 10);
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+        ctx.shadowBlur = 3;
+        ctx.fillText('ENTER', screenX + this.width / 2, this.y + this.height / 2);
+        ctx.fillText('🚪', screenX + this.width / 2, this.y - 15);
+        
         ctx.restore();
     }
 
@@ -341,7 +460,18 @@ class Portal {
 
 // Level state
 
+
 // Camera class
+class Camera {
+    constructor() {
+        this.x = 0;
+    }
+
+    update(player) {
+        this.x = player.x - SCREEN_WIDTH / 2 + player.width / 2;
+        this.x = Math.max(0, Math.min(this.x, WORLD_WIDTH - SCREEN_WIDTH));
+    }
+}
 
 
 let platforms = [];
@@ -557,17 +687,7 @@ class Enemy {
     }
 }
 
-// Camera class
-class Camera {
-    constructor() {
-        this.x = 0;
-    }
 
-    update(player) {
-        this.x = player.x - SCREEN_WIDTH / 2 + player.width / 2;
-        this.x = Math.max(0, Math.min(this.x, WORLD_WIDTH - SCREEN_WIDTH));
-    }
-}
 
 
 function adjustBrightness(color, amount) {
@@ -583,7 +703,7 @@ window.addEventListener('keydown', (event) => {
     keys[event.key] = true;
     if (event.key === ' ' || event.key === 'ArrowUp' || event.key === 'w' || event.key === 'W') {
         event.preventDefault();
-        if (window.player && typeof player.jump === 'function') {
+        if (player && typeof player.jump === 'function') {
             player.jump();
         }
     }
@@ -659,7 +779,7 @@ function handleTouchStart(e) {
         }
         if (Math.hypot(touchX - (virtualControls.jump.x + 50), touchY - (virtualControls.jump.y + 50)) <= 50) {
             virtualControls.jump.active = true;
-            if (window.player && typeof player.jump === 'function') {
+            if (player && typeof player.jump === 'function') {
                 player.jump();
             }
         }
@@ -805,14 +925,26 @@ function gameLoop() {
     // Activate portal when all letters collected
     const allCollected = letters.every(l => l.collected);
     portal.active = allCollected;
+    if (allCollected) {
+        console.log('All letters collected! Portal should be active at:', portal.x, portal.y);
+    }
     if (portal.active && portal.checkCollision(player)) {
+        console.log('Player entered portal!');
         advanceStage();
     }
 
     // Draw
     drawBackground();
     for (const p of platforms) p.draw(camera);
-    for (const l of letters) l.draw(camera, stageTemplates[currentStage].coinColor);
+    
+    // Draw letters with indicator for next one to collect
+    const currentStageData = stageTemplates[currentStage];
+    const nextIndex = collectedLetters.length;
+    for (let i = 0; i < letters.length; i++) {
+        const isNext = currentStageData.requiresOrder && i === nextIndex && !letters[i].collected;
+        letters[i].draw(camera, currentStageData.coinColor, isNext);
+    }
+    
     portal.draw(camera);
     player.draw(camera);
     drawHUD();

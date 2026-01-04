@@ -89,10 +89,11 @@ const GeezAlphabetDict = {
 function detectTranslationKey() {
     try {
         const keys = Object.keys(translations || {});
-        if (keys.length) {
-            const sample = translations[keys[0]];
-            for (const k of ['amharic','tigrinya','oromo','spanish']) {
-                if (sample && sample[k]) return k;
+        const langOrder = ['amharic','tigrinya','oromo','spanish'];
+        // Try to detect by scanning all entries for the first available language key
+        for (const lang of langOrder) {
+            for (const k of keys) {
+                if (translations[k] && translations[k][lang]) return lang;
             }
         }
     } catch (e) {}

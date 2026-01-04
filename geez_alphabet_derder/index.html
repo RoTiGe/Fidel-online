@@ -12,6 +12,7 @@
     <meta property="og:image" content="../../assets/derder-thumbnail.png">
     <title>🎯 Geez Alphabet Derder - Fidel Games</title>
     <link rel="stylesheet" href="styles.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -49,10 +50,10 @@
         #gameCanvas {
             display: block;
             width: 100%;
-            height: 100%;
+            height: calc(100vh - 60px);
             max-width: 100vw;
-            max-height: 100vh;
             touch-action: none;
+            margin-top: 60px;
         }
 
         /* HUD Overlay */
@@ -61,11 +62,8 @@
             top: var(--safe-area-inset-top);
             left: 0;
             right: 0;
-            padding: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 100;
+            padding: 10px 15px;
+            z-index: 1000;
             background: rgba(0, 0, 0, 0.3);
             backdrop-filter: blur(5px);
         }
@@ -99,20 +97,20 @@
         /* Stats Panel */
         .stats-panel {
             position: fixed;
-            top: calc(var(--safe-area-inset-top) + 50px);
-            left: 12px;
+            top: calc(var(--safe-area-inset-top) + 60px);
+            right: 12px;
             background: rgba(255, 255, 255, 0.95);
             padding: 10px 14px;
             border-radius: 8px;
             font-size: 12px;
             color: var(--primary-color);
             font-weight: bold;
-            z-index: 99;
+            z-index: 999;
         }
 
         .timer-display {
             position: fixed;
-            top: calc(var(--safe-area-inset-top) + 50px);
+            top: calc(var(--safe-area-inset-top) + 120px);
             right: 12px;
             background: rgba(255, 215, 0, 0.95);
             padding: 10px 14px;
@@ -120,7 +118,7 @@
             font-size: 14px;
             color: #333;
             font-weight: bold;
-            z-index: 99;
+            z-index: 999;
         }
         
         .instructions-modal {
@@ -195,7 +193,7 @@
             font-weight: bold;
             cursor: pointer;
             display: block;
-            margin: 20px auto 0;
+            margin: 25px auto;
             box-shadow: 0 5px 20px rgba(107, 207, 127, 0.4);
             transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
@@ -203,6 +201,18 @@
         .continue-button:hover {
             transform: scale(1.05);
             box-shadow: 0 8px 25px rgba(107, 207, 127, 0.6);
+        }
+        
+        .device-controls {
+            background: rgba(102, 126, 234, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border-left: 4px solid #FF6B9D;
+        }
+
+        .controls-hidden {
+            display: none;
         }
         
         .hidden {
@@ -235,9 +245,17 @@
     <div id="gameContainer">
         <!-- HUD Overlay -->
         <div class="hud-overlay">
-            <a href="/" target="_top" class="home-button" aria-label="Return to home">🏠 Home</a>
-            <button class="undo-button" id="undoButton" aria-label="Undo last placement" title="Undo last placement">↶ Undo</button>
-            <button class="timer-button" id="timerToggle" aria-label="Toggle timer" title="Toggle timer">⏱ Timer</button>
+            <div class="container-fluid">
+                <div class="row align-items-center">
+                    <div class="col-auto">
+                        <a href="/" target="_top" class="home-button" aria-label="Return to home">🏠 Home</a>
+                        <button class="undo-button ms-2" id="undoButton" aria-label="Undo last placement" title="Undo last placement">↶ Undo</button>
+                    </div>
+                    <div class="col text-end">
+                        <button class="timer-button" id="timerToggle" aria-label="Toggle timer" title="Toggle timer">⏱ Timer</button>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Stats Panel -->
@@ -257,12 +275,22 @@
     <div id="instructionsModal" class="instructions-modal">
         <div class="instructions-content">
             <h2>🎯 Geez Alphabet Derder</h2>
-            <p>Drag and drop letters to spell words in the correct order. Perfect for learning letter sequences!</p>
+            
+            <button class="continue-button" onclick="startGame()">Let's Play! 🚀</button>
 
-            <p style="margin-top: 15px;"><strong>How to Play:</strong></p>
+            <div class="device-controls" id="mobileControls">
+                <p><strong>📱 Mobile Controls:</strong></p>
+                <p>👆 Tap and drag letters to drop zones</p>
+            </div>
+
+            <div class="device-controls" id="desktopControls">
+                <p><strong>🖱️ Desktop Controls:</strong></p>
+                <p>🖱️ Click and drag letters to drop zones</p>
+            </div>
+
+            <p><strong>How to Play:</strong></p>
             <ul>
                 <li>🎯 Letters appear randomly at the top</li>
-                <li>🖱️ Click/tap and drag letters to drop zones</li>
                 <li>📝 Place them in the correct order</li>
                 <li>✅ Green slots = correct, ❌ Red slots = wrong</li>
                 <li>📢 Each letter pronounces when placed</li>
@@ -287,12 +315,36 @@
             </ul>
 
             <p style="margin-top: 15px; color: #FF6B35; font-weight: bold;">💡 Tip: You can click on placed letters to remove and rearrange them!</p>
-
-            <button class="continue-button" onclick="startGame()">Let's Play! 🚀</button>
         </div>
     </div>
 
     <script>
+        // Device detection and UI customization
+        function detectDeviceAndCustomizeUI() {
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            const hasTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+            
+            const mobileControls = document.getElementById('mobileControls');
+            const desktopControls = document.getElementById('desktopControls');
+            
+            if (isMobile || hasTouch) {
+                // Show mobile controls, hide desktop
+                if (mobileControls) mobileControls.classList.remove('controls-hidden');
+                if (desktopControls) desktopControls.classList.add('controls-hidden');
+            } else {
+                // Show desktop controls, hide mobile
+                if (desktopControls) desktopControls.classList.remove('controls-hidden');
+                if (mobileControls) mobileControls.classList.add('controls-hidden');
+            }
+        }
+
+        // Run device detection when page loads
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', detectDeviceAndCustomizeUI);
+        } else {
+            detectDeviceAndCustomizeUI();
+        }
+
         // Dynamically load the selected translation and then the game script
         (function() {
             const params = new URLSearchParams(location.search);

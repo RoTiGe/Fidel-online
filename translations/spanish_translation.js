@@ -1,4 +1,6 @@
 const translations = {
+// ...existing code...
+
   // --- 1. BASICS & GREETINGS ---
   "hello": { "spanish": "Hola", "phonetic": "o-la", "category": "basics" },
   "goodbye": { "spanish": "Adiós", "phonetic": "a-dyos", "category": "basics" },
@@ -348,3 +350,5 @@ const translations = {
     "independence": { "spanish": "Independencia", "phonetic": "in-de-pen-den-sya", "category": "political" },
     "surrender": { "spanish": "Rendición", "phonetic": "ren-di-syon", "category": "actions" }
 };
+
+window.translations = translations;

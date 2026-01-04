@@ -57,6 +57,10 @@
             max-height: 100vh;
         }
 
+        #gameCanvas {
+            margin-top: calc(var(--safe-area-inset-top) + 50px); /* Adjust canvas to avoid overlapping with HUD overlay */
+        }
+
         /* HUD Overlay */
         .hud-overlay {
             position: fixed;

@@ -37,43 +37,27 @@
         }
 
         .game-card {
-            background: white;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border-radius: 15px;
-            padding: 30px;
+            padding: 40px 30px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            transition: transform 0.3s ease;
+            transition: all 0.3s ease;
             text-align: center;
+            cursor: pointer;
+            text-decoration: none;
+            display: block;
+            color: white;
         }
 
         .game-card:hover {
             transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
         }
 
         .game-card h2 {
-            color: #667eea;
-            margin-bottom: 15px;
-        }
-
-        .game-card p {
-            color: #666;
-            margin-bottom: 20px;
-            line-height: 1.6;
-        }
-
-        .play-button {
-            display: inline-block;
-            padding: 12px 30px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            text-decoration: none;
-            border-radius: 25px;
-            font-weight: bold;
-            transition: all 0.3s ease;
-        }
-
-        .play-button:hover {
-            transform: scale(1.05);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            margin: 0;
+            font-size: 2em;
         }
 
         .features {
@@ -114,35 +98,25 @@
         </div>
 
         <div class="games-grid">
-            <div class="game-card">
+            <a href="/mario-platformer" class="game-card">
                 <h2>🌟 AbuGida</h2>
-                <p>Classic platformer experience tailored for Geez AbuGida learning.</p>
-                <a href="/mario-platformer" class="play-button">Play AbuGida</a>
-            </div>
+            </a>
 
-            <div class="game-card">
+            <a href="/platformer-tutorial" class="game-card">
                 <h2>📚 Platformer Tutorial</h2>
-                <p>Learn the basics with our tutorial mode. Perfect for beginners!</p>
-                <a href="/platformer-tutorial" class="play-button">Start Tutorial</a>
-            </div>
+            </a>
 
-            <div class="game-card">
+            <a href="/platformer" class="game-card">
                 <h2>🏃 Platformer Game</h2>
-                <p>Jump and run through levels while learning Geez letters. Collect letters and complete challenges!</p>
-                <a href="/platformer" class="play-button">Play Platformer</a>
-            </div>
+            </a>
 
-            <div class="game-card">
+            <a href="/alphabet-game" class="game-card">
                 <h2>🔤 Alphabet Game</h2>
-                <p>Interactive alphabet learning with pronunciation and word examples.</p>
-                <a href="/alphabet-game" class="play-button">Learn Now</a>
-            </div>
+            </a>
 
-            <div class="game-card">
+            <a href="/derder" class="game-card">
                 <h2>🎯 Derder Game</h2>
-                <p>Test your knowledge with fun matching and recognition games.</p>
-                <a href="/derder" class="play-button">Play Game</a>
-            </div>
+            </a>
         </div>
 
         <div class="features">

@@ -101,7 +101,7 @@ Object.keys(translations).forEach(w => {
     const cat = translations[w].category || 'uncategorized';
     (categoriesMap[cat] ||= []).push(w);
 });
-const categoriesOrder = Object.keys(categoriesMap).sort((a,b) => categoriesMap[a].length - categoriesMap[b].length);
+const categoriesOrder = Object.keys(categoriesMap).sort(() => Math.random() - 0.5);
 let currentCategoryIndex = 0;
 let wordsToTranslate = categoriesMap[categoriesOrder[currentCategoryIndex]];
 let currentWord = wordsToTranslate[Math.floor(Math.random() * wordsToTranslate.length)];

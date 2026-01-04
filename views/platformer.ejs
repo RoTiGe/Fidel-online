@@ -8,6 +8,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#667eea">
     <title><%= title %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -49,9 +50,9 @@
             touch-action: none;
             display: block;
             width: 100%;
-            height: 100%;
+            height: calc(100vh - 60px);
             max-width: 100vw;
-            max-height: 100vh;
+            margin-top: 60px;
         }
 
         .hud-overlay {
@@ -59,11 +60,8 @@
             top: var(--safe-area-inset-top);
             left: 0;
             right: 0;
-            padding: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 100;
+            padding: 10px 15px;
+            z-index: 1000;
             background: rgba(0, 0, 0, 0.3);
             backdrop-filter: blur(5px);
         }
@@ -91,7 +89,7 @@
 
         .stage-info {
             position: fixed;
-            top: calc(var(--safe-area-inset-top) + 50px);
+            top: calc(var(--safe-area-inset-top) + 60px);
             left: 12px;
             background: rgba(255, 255, 255, 0.95);
             padding: 10px 14px;
@@ -99,12 +97,12 @@
             font-size: 12px;
             color: var(--primary-color);
             font-weight: bold;
-            z-index: 99;
+            z-index: 999;
         }
 
         .difficulty-badge {
             position: fixed;
-            top: calc(var(--safe-area-inset-top) + 50px);
+            top: calc(var(--safe-area-inset-top) + 60px);
             right: 12px;
             background: rgba(255, 215, 0, 0.95);
             padding: 10px 14px;
@@ -112,7 +110,7 @@
             font-size: 12px;
             color: #333;
             font-weight: bold;
-            z-index: 99;
+            z-index: 999;
         }
 
         .instructions-modal {
@@ -174,13 +172,25 @@
             font-weight: bold;
             cursor: pointer;
             display: block;
-            margin: 20px auto 0;
+            margin: 25px auto;
             box-shadow: 0 5px 20px rgba(107, 207, 127, 0.4);
             transition: transform 0.2s ease;
         }
 
         .continue-button:hover {
             transform: scale(1.05);
+        }
+
+        .device-controls {
+            background: rgba(102, 126, 234, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .controls-hidden {
+            display: none;
         }
 
         .hidden {
@@ -211,8 +221,16 @@
 <body>
     <div id="gameContainer">
         <div class="hud-overlay">
-            <a href="/" class="home-button" aria-label="Return to home">🏠 Home</a>
-            <button class="achievements-button" id="achievementsButton" aria-label="View achievements">🏆 Achievements</button>
+            <div class="container-fluid">
+                <div class="row align-items-center">
+                    <div class="col-auto">
+                        <a href="/" class="home-button" aria-label="Return to home">🏠 Home</a>
+                    </div>
+                    <div class="col text-end">
+                        <button class="achievements-button" id="achievementsButton" aria-label="View achievements">🏆 Achievements</button>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="stage-info" id="stageInfo">Stage 1/5</div>
@@ -236,12 +254,27 @@
     <div id="instructionsModal" class="instructions-modal">
         <div class="instructions-content">
             <h2>🌟 Geez Platformer Adventure</h2>
-            <p>The ultimate combination! Learn Geez alphabet while playing an exciting platformer game.</p>
+            
+            <button class="continue-button" onclick="startGame()">Start Adventure! 🚀</button>
 
-            <p style="margin-top: 15px;"><strong>How to Play:</strong></p>
+            <div class="device-controls" id="mobileControls">
+                <p><strong>📱 Mobile Controls:</strong></p>
+                <ul>
+                    <li>👆 Tap on-screen buttons to move left/right</li>
+                    <li>⬆️ Tap JUMP button to jump</li>
+                </ul>
+            </div>
+
+            <div class="device-controls" id="desktopControls">
+                <p><strong>⌨️ Desktop Controls:</strong></p>
+                <ul>
+                    <li>🏃 Arrow Keys (← →) or A/D to move</li>
+                    <li>⬆️ Space or ↑ to jump</li>
+                </ul>
+            </div>
+
+            <p><strong>How to Play:</strong></p>
             <ul>
-                <li>🏃 Use Arrow Keys/A/D or Touch Buttons to move</li>
-                <li>⬆️ Press Space/↑ or Touch JUMP to jump</li>
                 <li>🎯 Collect floating Geez letters to spell words</li>
                 <li>📚 Listen to pronunciations and learn</li>
                 <li>⚠️ Avoid enemies that spawn after 30 seconds</li>
@@ -259,12 +292,36 @@
             </ul>
 
             <p style="margin-top: 15px; color: #FF6B35; font-weight: bold;">💡 Tip: In later stages, collect letters in the correct order for bonus points!</p>
-
-            <button class="continue-button" onclick="startGame()">Start Adventure! 🚀</button>
         </div>
     </div>
     
     <script>
+        // Device detection and UI customization
+        function detectDeviceAndCustomizeUI() {
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            const hasTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+            
+            const mobileControls = document.getElementById('mobileControls');
+            const desktopControls = document.getElementById('desktopControls');
+            
+            if (isMobile || hasTouch) {
+                // Show mobile controls, hide desktop
+                if (mobileControls) mobileControls.classList.remove('controls-hidden');
+                if (desktopControls) desktopControls.classList.add('controls-hidden');
+            } else {
+                // Show desktop controls, hide mobile
+                if (desktopControls) desktopControls.classList.remove('controls-hidden');
+                if (mobileControls) mobileControls.classList.add('controls-hidden');
+            }
+        }
+
+        // Run device detection when page loads
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', detectDeviceAndCustomizeUI);
+        } else {
+            detectDeviceAndCustomizeUI();
+        }
+
         (function() {
             function getSelectedLang() {
                 var url;

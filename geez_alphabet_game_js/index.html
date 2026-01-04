@@ -392,6 +392,16 @@
         <div class="instructions-content">
             <h2>📚 Geez Alphabet Learning Game</h2>
             
+            <div style="margin: 20px 0; text-align: center;">
+                <label for="languageSelect" style="font-weight: bold; color: #667eea; margin-right: 10px;">Choose Language:</label>
+                <select id="languageSelect" style="padding: 8px 15px; border-radius: 8px; border: 2px solid #667eea; font-size: 16px; cursor: pointer;">
+                    <option value="amharic">አማርኛ (Amharic)</option>
+                    <option value="tigrinya">ትግርኛ (Tigrinya)</option>
+                    <option value="oromo">Afaan Oromoo (Oromo)</option>
+                    <option value="spanish">Español (Spanish)</option>
+                </select>
+            </div>
+            
             <button class="continue-button" onclick="startGame()">Start Learning! 🚀</button>
 
             <div class="device-controls" id="mobileControls">
@@ -448,40 +458,12 @@
         } else {
             detectDeviceAndCustomizeUI();
         }
-
-        // Dynamically load the selected translation and then the game script
-        (function() {
-            const params = new URLSearchParams(location.search);
-            const saved = localStorage.getItem('selectedLanguage');
-            const lang = params.get('lang') || saved || 'amharic';
-            const map = {
-                amharic: '/translations/amharic_translation.js',
-                tigrinya: '/translations/tigrigna_translation.js',
-                oromo: '/translations/Oromiffa_translations.js',
-                spanish: '/translations/spanish_translation.js'
-            };
-            const transSrc = map[lang] || map['amharic'];
-            const s1 = document.createElement('script');
-            s1.src = transSrc;
-            s1.onload = function() {
-                const s2 = document.createElement('script');
-                s2.src = 'game.js';
-                document.body.appendChild(s2);
-            };
-            s1.onerror = function() {
-                // Fallback to Amharic if selected file fails to load
-                const fallback = document.createElement('script');
-                fallback.src = map['amharic'];
-                fallback.onload = function() {
-                    const s2 = document.createElement('script');
-                    s2.src = 'game.js';
-                    document.body.appendChild(s2);
-                };
-                document.body.appendChild(fallback);
-            };
-            document.body.appendChild(s1);
-        })();
     </script>
+    
+    <!-- Load API and Game Scripts -->
+    <script src="/js/game-api.js"></script>
+    <script src="game.js"></script>
+    
     <script>
         // startGame is already defined in game.js
         let soundEnabled = true;

@@ -339,66 +339,40 @@
         } else {
             detectDeviceAndCustomizeUI();
         }
-
-        // Dynamically load the selected translation and then the game script
-        (function() {
+    </script>
+    
+    <!-- Game API Client -->
+    <script src="/js/game-api.js"></script>
+    
+    <!-- Game Script -->
+    <script src="game.js"></script>
+    
+    <script>
+        // Set up language selector
+        document.addEventListener('DOMContentLoaded', function() {
             const params = new URLSearchParams(location.search);
             const saved = localStorage.getItem('selectedLanguage');
             const lang = params.get('lang') || saved || 'amharic';
-            const map = {
-                amharic: '/translations/amharic_translation.js',
-                tigrinya: '/translations/tigrigna_translation.js',
-                oromo: '/translations/Oromiffa_translations.js',
-                spanish: '/translations/spanish_translation.js'
-            };
-            // Set selector value on DOMContentLoaded
-            document.addEventListener('DOMContentLoaded', function() {
-                var select = document.getElementById('languageSelect');
-                if (select) {
-                    select.value = lang;
-                    select.addEventListener('change', function(e) {
-                        var key = e.target.value;
-                        localStorage.setItem('selectedLanguage', key);
-                        // Reload with ?lang=key to ensure correct translation
-                        const url = new URL(window.location.href);
-                        url.searchParams.set('lang', key);
-                        window.location.href = url.toString();
-                    });
-                }
-            });
-            // Load translation and game script
-            const transSrc = map[lang] || map['amharic'];
-            const s1 = document.createElement('script');
-            s1.src = transSrc;
-            s1.onload = function() {
-                const s2 = document.createElement('script');
-                s2.src = 'game.js';
-                s2.onload = function() {
-                    var btn = document.getElementById('startTutorialBtn');
-                    if (btn && window.startGame) {
-                        btn.onclick = window.startGame;
-                    }
-                };
-                document.body.appendChild(s2);
-            };
-            s1.onerror = function() {
-                const fallback = document.createElement('script');
-                fallback.src = map['amharic'];
-                fallback.onload = function() {
-                    const s2 = document.createElement('script');
-                    s2.src = 'game.js';
-                    s2.onload = function() {
-                        var btn = document.getElementById('startTutorialBtn');
-                        if (btn && window.startGame) {
-                            btn.onclick = window.startGame;
-                        }
-                    };
-                    document.body.appendChild(s2);
-                };
-                document.body.appendChild(fallback);
-            };
-            document.body.appendChild(s1);
-        })();
+            
+            var select = document.getElementById('languageSelect');
+            if (select) {
+                select.value = lang;
+                select.addEventListener('change', function(e) {
+                    var key = e.target.value;
+                    localStorage.setItem('selectedLanguage', key);
+                    // Reload page to reinitialize with new language
+                    const url = new URL(window.location.href);
+                    url.searchParams.set('lang', key);
+                    window.location.href = url.toString();
+                });
+            }
+            
+            // Connect start button to game
+            var btn = document.getElementById('startTutorialBtn');
+            if (btn && window.startGame) {
+                btn.onclick = window.startGame;
+            }
+        });
     </script>
     <script>
         // gameStarted and startGame are already declared in game.js

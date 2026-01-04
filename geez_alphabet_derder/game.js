@@ -1,4 +1,5 @@
 // Geez Alphabet Derder - Drag and Drop Game
+const gameAPI = new GameAPI();
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
@@ -28,10 +29,16 @@ resizeCanvas();
 window.addEventListener('resize', resizeCanvas);
 
 // Start game function (called when continue button is clicked)
-function startGame() {
+async function startGame() {
     document.getElementById('instructionsModal').classList.add('hidden');
     gameStarted = true;
     resizeCanvas();
+    
+    // Initialize game data from API
+    const languageSelect = document.getElementById('languageSelect');
+    const language = languageSelect ? languageSelect.value : 'amharic';
+    await initializeGameData(language);
+    
     try { bgm.currentTime = 0; bgm.play().catch(()=>{}); } catch(e) {}
 }
 
@@ -82,31 +89,37 @@ const LetterPronunciations = {
         'ፐ': 'pe', 'ፑ': 'pu', 'ፒ': 'pi', 'ፓ': 'pa', 'ፔ': 'pey', 'ፕ': 'pih', 'ፖ': 'po'
 };
 
-// Categories as stages (fewest words first)
-const categoriesMap = {};
-function detectTranslationKey() {
-    try {
-        const keys = Object.keys(translations || {});
-        if (keys.length) {
-            const sample = translations[keys[0]];
-            for (const k of ['amharic','tigrinya','oromo','spanish']) {
-                if (sample && sample[k]) return k;
-            }
-        }
-    } catch (e) {}
-    return 'amharic';
-}
-const translationKey = detectTranslationKey();
-Object.keys(translations).forEach(w => {
-    const cat = translations[w].category || 'uncategorized';
-    (categoriesMap[cat] ||= []).push(w);
-});
-const categoriesOrder = Object.keys(categoriesMap).sort(() => Math.random() - 0.5);
+// Game state - will be initialized from API
+let categoriesOrder = [];
 let currentCategoryIndex = 0;
-let wordsToTranslate = categoriesMap[categoriesOrder[currentCategoryIndex]];
-let currentWord = wordsToTranslate[Math.floor(Math.random() * wordsToTranslate.length)];
-let currentAmharic = translations[currentWord][translationKey];
+let currentWord = '';
+let currentAmharic = '';
+let currentPhonetic = '';
+let currentCategory = '';
 let score = 0;
+
+// Initialize game data from API
+async function initializeGameData(language) {
+    try {
+        // Initialize game session
+        const session = await gameAPI.initGame('derder', language);
+        categoriesOrder = session.categoriesOrder;
+        currentCategoryIndex = 0;
+        
+        // Get first word
+        const wordData = await gameAPI.getCurrentWord();
+        currentWord = wordData.word;
+        currentAmharic = wordData.translation;
+        currentPhonetic = wordData.phonetic;
+        currentCategory = wordData.category;
+        
+        // Initialize the letters for dragging
+        initializeLetters();
+    } catch (error) {
+        console.error('Failed to initialize game:', error);
+        alert('Failed to load game data. Please refresh and try again.');
+    }
+}
 let draggedLetter = null;
 let mouseX = 0;
 let mouseY = 0;
@@ -296,7 +309,7 @@ function initializeLetters() {
     }
     
     // Pronounce the word
-    pronounceWord(currentWord, translations[currentWord].phonetic);
+    pronounceWord(currentWord, currentPhonetic);
 }
 
 // Check if letter is dropped in a slot
@@ -361,19 +374,42 @@ function completeWord() {
     initializeLetters();
 }
 
+// Advance to next word or stage
+async function advanceToNextWord() {
+    try {
+        const result = await gameAPI.advanceStage();
+        
+        if (result.gameOver) {
+            gameOver = true;
+            return;
+        }
+        
+        // Get new word data
+        const wordData = await gameAPI.getCurrentWord();
+        currentWord = wordData.word;
+        currentAmharic = wordData.translation;
+        currentPhonetic = wordData.phonetic;
+        currentCategory = wordData.category;
+        
+        initializeLetters();
+    } catch (error) {
+        console.error('Failed to advance:', error);
+    }
+}
+
 // Restart game
-function restartGame() {
+async function restartGame() {
     score = 0;
     currentCategoryIndex = 0;
     wordsCompletedInStage = 0;
     completedWordsSet.clear();
     gameOver = false;
-    wordsToTranslate = categoriesMap[categoriesOrder[currentCategoryIndex]];
-    const remaining = wordsToTranslate.filter(w => !completedWordsSet.has(w));
-    const pool = remaining.length > 0 ? remaining : wordsToTranslate;
-    currentWord = pool[Math.floor(Math.random() * pool.length)];
-    currentAmharic = translations[currentWord][translationKey];
-    initializeLetters();
+    
+    // Reinitialize from API
+    gameAPI.clearSession();
+    const languageSelect = document.getElementById('languageSelect');
+    const language = languageSelect ? languageSelect.value : 'amharic';
+    await initializeGameData(language);
 }
 
 // Adjust color brightness
@@ -591,7 +627,7 @@ function gameLoop() {
         ctx.fillText('Score: ' + score, 20, 35);
         
         ctx.font = 'bold 20px Arial';
-        const stageLabel = `Stage ${currentCategoryIndex + 1}: ${categoriesOrder[currentCategoryIndex]} (${wordsToTranslate.length} words)`;
+        const stageLabel = `Stage ${currentCategoryIndex + 1}: ${currentCategory}`;
         ctx.fillText(stageLabel, 20, 65);
         
         // Draw target word
@@ -601,7 +637,7 @@ function gameLoop() {
         ctx.fillText('Spell: ' + currentWord, WIDTH / 2, 30);
         ctx.fillStyle = BLACK;
         ctx.font = '18px Arial';
-        ctx.fillText('(' + translations[currentWord].phonetic + ')', WIDTH / 2, 55);
+        ctx.fillText('(' + currentPhonetic + ')', WIDTH / 2, 55);
         
         // Draw drop zone
         drawDropZone();

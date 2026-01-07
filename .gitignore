@@ -5,3 +5,8 @@ node_modules/
 npm-debug.log*
 .vscode/
 .idea/
+
+# Ignore all markdown files except README.md
+*.md
+!README.md
+!**/README.md

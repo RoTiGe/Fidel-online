@@ -286,6 +286,16 @@
         <div class="instructions-content">
             <h2>🎯 Geez Alphabet Derder</h2>
             
+            <div style="margin: 20px 0; text-align: center;">
+                <label for="languageSelect" style="font-weight: bold; color: #667eea; margin-right: 10px;">Choose Language:</label>
+                <select id="languageSelect" style="padding: 8px 15px; border-radius: 8px; border: 2px solid #667eea; font-size: 16px; cursor: pointer;">
+                    <option value="amharic">አማርኛ (Amharic)</option>
+                    <option value="tigrinya">ትግርኛ (Tigrinya)</option>
+                    <option value="oromo">Afaan Oromoo (Oromo)</option>
+                    <option value="spanish">Español (Spanish)</option>
+                </select>
+            </div>
+            
             <button class="continue-button" onclick="startGame()">Let's Play! 🚀</button>
 
             <div class="device-controls" id="mobileControls">
@@ -354,6 +364,7 @@
         } else {
             detectDeviceAndCustomizeUI();
         }
+<<<<<<< HEAD
 
         // Load centralized translations JSON
         const s1 = document.createElement('script');
@@ -367,7 +378,14 @@
             }, { once: true });
         };
         document.body.appendChild(s1);
+=======
+>>>>>>> c84c26feba0322eea9ad0d06a4c61b70e615f095
     </script>
+    
+    <!-- Load API and Game Scripts -->
+    <script src="/js/game-api.js"></script>
+    <script src="game.js"></script>
+    
     <script>
         // gameStarted is already declared in game.js
         // startGame is already defined in game.js

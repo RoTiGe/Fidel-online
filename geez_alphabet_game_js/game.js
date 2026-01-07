@@ -1,4 +1,5 @@
 // Geez Alphabet Game - JavaScript Version
+const gameAPI = new GameAPI();
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
@@ -30,10 +31,16 @@ resizeCanvas();
 window.addEventListener('resize', resizeCanvas);
 
 // Start game function (called when continue button is clicked)
-function startGame() {
+async function startGame() {
     document.getElementById('instructionsModal').classList.add('hidden');
     gameStarted = true;
     resizeCanvas();
+    
+    // Initialize game data from API
+    const languageSelect = document.getElementById('languageSelect');
+    const language = languageSelect ? languageSelect.value : 'amharic';
+    await initializeGameData(language);
+    
     try { bgm.currentTime = 0; bgm.play().catch(()=>{}); } catch(e) {}
 }
 window.startGame = startGame;
@@ -49,8 +56,8 @@ const MAGENTA = '#9D84FF';
 const ORANGE = '#FF9A5C';
 const LIGHT_BLUE = '#8EC5FC';
 
-// Geez Alphabet Dictionary
-const GeezAlphabetDict = {
+// Geez Alphabet Dictionary (loaded from API)
+let GeezAlphabetDict = {
     // Note: 'eh' as in 'bed', 'ah' as in 'far', 'ee' as in 'see', 'ay' as in 'say', 'ih' as in 'pin'
     'ሀ': 'he', 'ሁ': 'hu', 'ሂ': 'hi', 'ሃ': 'ha', 'ሄ': 'hey', 'ህ': 'hih', 'ሆ': 'ho',
     'ለ': 'le', 'ሉ': 'lu', 'ሊ': 'li', 'ላ': 'la', 'ሌ': 'ley', 'ል': 'lih', 'ሎ': 'lo',
@@ -82,35 +89,42 @@ const GeezAlphabetDict = {
     'ፈ': 'fe', 'ፉ': 'fu', 'ፊ': 'fi', 'ፋ': 'fa', 'ፌ': 'fey', 'ፍ': 'fih', 'ፎ': 'fo',
     'ፐ': 'pe', 'ፑ': 'pu', 'ፒ': 'pi', 'ፓ': 'pa', 'ፔ': 'pey', 'ፕ': 'pih', 'ፖ': 'po'
 };
-// Using centralized translations injected via selected translation file
-function detectTranslationKey() {
-    try {
-        const keys = Object.keys(translations || {});
-        if (keys.length) {
-            const sample = translations[keys[0]];
-            for (const k of ['amharic','tigrinya','oromo','spanish']) {
-                if (sample && sample[k]) return k;
-            }
-        }
-    } catch (e) {}
-    return 'amharic';
-}
-const translationKey = detectTranslationKey();
-// Build categories map and stage order (fewest words first)
-const categoriesMap = {};
-Object.keys(translations).forEach(word => {
-    const cat = translations[word].category || 'uncategorized';
-    if (!categoriesMap[cat]) categoriesMap[cat] = [];
-    categoriesMap[cat].push(word);
-});
-const categoriesOrder = Object.keys(categoriesMap).sort((a, b) => categoriesMap[a].length - categoriesMap[b].length);
+// Game state variables (loaded from API)
 let currentCategoryIndex = 0;
-let currentCategory = categoriesOrder[currentCategoryIndex];
+let currentCategory = '';
+let currentWord = '';
+let currentAmharic = '';
+let currentPhonetic = '';
+let categoriesOrder = [];
 
-// Game variables
-let wordsToTranslate = categoriesMap[currentCategory];
-let currentWord = wordsToTranslate[Math.floor(Math.random() * wordsToTranslate.length)];
-let currentAmharic = translations[currentWord][translationKey];
+// Initialize game data from API
+async function initializeGameData(language) {
+    try {
+        const session = await gameAPI.initGame('alphabet-game', language);
+        categoriesOrder = session.categoriesOrder;
+        currentCategoryIndex = 0;
+        
+        // Get alphabet mapping
+        const { alphabet } = await gameAPI.getAlphabet(language);
+        GeezAlphabetDict = alphabet;
+        
+        // Get first word
+        const wordData = await gameAPI.getCurrentWord();
+        currentWord = wordData.word;
+        currentAmharic = wordData.translation;
+        currentPhonetic = wordData.phonetic;
+        currentCategory = wordData.category;
+        
+        // Reset game state
+        score = 0;
+        completedWordsSet.clear();
+        collectedLetters = '';
+        
+        console.log('Game initialized:', { word: currentWord, category: currentCategory });
+    } catch (error) {
+        console.error('Failed to initialize game:', error);
+    }
+}
 let collectedLetters = '';
 let score = 0;
 let mouseX = 0;
@@ -695,53 +709,75 @@ function completeWord() {
     }
     
     // Pronounce the completed word again as celebration
-    pronounceWord(currentWord, translations[currentWord].phonetic);
+    pronounceWord(currentWord, currentPhonetic);
     try { sfx.success.currentTime = 0; sfx.success.play().catch(()=>{}); } catch(e) {}
     
-    // Delay next word/stage transition
-    setTimeout(() => {
-        celebrationActive = false;
+    // Validate completion with server and get next word
+    validateWordCompletion();
+}
+
+// Validate word completion with server
+async function validateWordCompletion() {
+    try {
+        // Submit to server for validation
+        const result = await gameAPI.completeWord(
+            currentWord,
+            currentAmharic.split(''),
+            0 // Time not tracked in this game
+        );
         
-        // Progress by category: finish all words in current category, then advance
-        if (wordsCompletedInStage >= wordsToTranslate.length) {
-            // Check for game over after first category
-            if (currentCategoryIndex === 0 && score === 0) {
-                gameOver = true;
-                console.log("Game Over! Score is 0 after first category");
-                return;
-            }
-
-            if (currentCategoryIndex < categoriesOrder.length - 1) {
-                currentCategoryIndex++;
-                currentCategory = categoriesOrder[currentCategoryIndex];
-                wordsToTranslate = categoriesMap[currentCategory];
-                wordsCompletedInStage = 0;
-                completedWordsSet.clear();
-                currentStage = currentCategoryIndex + 1;
-                console.log(`Advanced to category stage: ${currentCategory}`);
-            } else {
-                // Completed all categories; reset within last category
-                wordsCompletedInStage = 0;
-                completedWordsSet.clear();
-                console.log('All categories completed! Cycling last category.');
-            }
+        if (result.success) {
+            score = result.totalScore;
         }
+        
+        // Delay next word/stage transition
+        setTimeout(async () => {
+            celebrationActive = false;
+            
+            // Advance to next word
+            await advanceToNextWord();
+        }, 2500); // 2.5 second celebration
+    } catch (error) {
+        console.error('Failed to validate word:', error);
+        // Fallback to next word anyway
+        setTimeout(async () => {
+            celebrationActive = false;
+            await advanceToNextWord();
+        }, 2500);
+    }
+}
 
-        // Load next word from remaining in current category
-        const remaining = wordsToTranslate.filter(w => !completedWordsSet.has(w));
-        const pool = remaining.length > 0 ? remaining : wordsToTranslate;
-        currentWord = pool[Math.floor(Math.random() * pool.length)];
-        currentAmharic = translations[currentWord][translationKey];
+// Advance to next word or stage
+async function advanceToNextWord() {
+    try {
+        const result = await gameAPI.advanceStage();
+        
+        if (result.gameOver) {
+            gameOver = true;
+            console.log('Game Over!');
+            return;
+        }
+        
+        // Get new word data
+        const wordData = await gameAPI.getCurrentWord();
+        currentWord = wordData.word;
+        currentAmharic = wordData.translation;
+        currentPhonetic = wordData.phonetic;
+        currentCategory = wordData.category;
+        currentCategoryIndex = wordData.stage - 1;
+        
         collectedLetters = '';
         collectedOutOfOrder = false;
         
         // Pronounce the new word before spawning letters
         wordPronunciationComplete = false;
-        pronounceWord(currentWord, translations[currentWord].phonetic);
+        pronounceWord(currentWord, currentPhonetic);
         
         // Reset all falling letters with the new word's letters
         fallingLetters.forEach(letter => letter.reset());
-    }, 2500); // 2.5 second celebration
+    } catch (error) {
+        console.error('Failed to advance:', error);
+    }
 }
 
 // Draw functions

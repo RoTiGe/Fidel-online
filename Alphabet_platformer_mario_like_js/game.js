@@ -1,3 +1,4 @@
+const gameAPI = new GameAPI();
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
@@ -32,7 +33,7 @@ const geezAlphabet = [
 ];
 */
 
-const GeezAlphabetDict = {
+let GeezAlphabetDict = {
     // Note: 'eh' as in 'bed', 'ah' as in 'far', 'ee' as in 'see', 'ay' as in 'say', 'ih' as in 'pin'
     'ሀ': 'he', 'ሁ': 'hu', 'ሂ': 'hi', 'ሃ': 'ha', 'ሄ': 'hey', 'ህ': 'hih', 'ሆ': 'ho',
     'ለ': 'le', 'ሉ': 'lu', 'ሊ': 'li', 'ላ': 'la', 'ሌ': 'ley', 'ል': 'lih', 'ሎ': 'lo',
@@ -65,20 +66,24 @@ const GeezAlphabetDict = {
     'ፐ': 'pe', 'ፑ': 'pu', 'ፒ': 'pi', 'ፓ': 'pa', 'ፔ': 'pey', 'ፕ': 'pih', 'ፖ': 'po'
 };
 
-// Detect selected translation key dynamically
-function detectTranslationKey() {
+// Game state variables
+let geezCharacters = [];
+let translationKey = 'amharic';
+
+// Initialize alphabet from API
+async function initializeAlphabet(language) {
     try {
-        const keys = Object.keys(translations || {});
-        if (keys.length) {
-            const sample = translations[keys[0]];
-            for (const k of ['amharic','tigrinya','oromo','spanish']) {
-                if (sample && sample[k]) return k;
-            }
-        }
-    } catch (e) {}
-    return 'amharic';
+        const { alphabet } = await gameAPI.getAlphabet(language);
+        GeezAlphabetDict = alphabet;
+        geezCharacters = Object.keys(alphabet);
+        translationKey = language;
+        console.log('Alphabet loaded:', geezCharacters.length, 'characters');
+    } catch (error) {
+        console.error('Failed to load alphabet:', error);
+        // Fallback to existing GeezAlphabetDict keys
+        geezCharacters = Object.keys(GeezAlphabetDict);
+    }
 }
-const translationKey = detectTranslationKey();
 
 // Build unique Geez letters from centralized translations (fallback to dict keys)
 function buildGeezCharactersFromTranslations(translationsObj, key) {
@@ -143,11 +148,6 @@ let coinsPerStage = 7;
 let lettersPerBatch = 35; // 5 stages × 7 letters
 let totalLettersCollected = 0;
 let showCongratulations = false;
-// Prefer letters derived from translations; fallback to dict keys
-let geezCharacters = buildGeezCharactersFromTranslations(typeof translations !== 'undefined' ? translations : {}, translationKey);
-if (!geezCharacters || geezCharacters.length === 0) {
-    geezCharacters = Object.keys(GeezAlphabetDict);
-}
 // Compute batch and offset based on available letters
 let currentBatch = Math.floor(getRandomLetterFamilyStage() / lettersPerBatch);
 let stageOffset = getRandomLetterFamilyStage() % lettersPerBatch; // Track offset within batch
@@ -1054,10 +1054,18 @@ let gameStarted = false;
 let continueButtonBounds = null;
 
 // Start game function (called when Play Now button is clicked)
-function startGame() {
+async function startGame() {
     document.getElementById('instructionsModal').classList.add('hidden');
     gameStarted = true;
     resizeCanvas();
+    
+    // Initialize alphabet from API
+    const languageSelect = document.getElementById('languageSelect');
+    const language = languageSelect ? languageSelect.value : 'amharic';
+    await initializeAlphabet(language);
+    
+    // Load saved progress or start fresh
+    loadSavedProgress();
 }
 window.startGame = startGame;
 

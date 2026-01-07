@@ -349,6 +349,7 @@
         } else {
             detectDeviceAndCustomizeUI();
         }
+<<<<<<< HEAD
 
         // Dynamically load the selected translation and then the game script
         (function() {
@@ -371,6 +372,42 @@
             };
             document.body.appendChild(s1);
         })();
+=======
+    </script>
+    
+    <!-- Game API Client -->
+    <script src="/js/game-api.js"></script>
+    
+    <!-- Game Script -->
+    <script src="game.js"></script>
+    
+    <script>
+        // Set up language selector
+        document.addEventListener('DOMContentLoaded', function() {
+            const params = new URLSearchParams(location.search);
+            const saved = localStorage.getItem('selectedLanguage');
+            const lang = params.get('lang') || saved || 'amharic';
+            
+            var select = document.getElementById('languageSelect');
+            if (select) {
+                select.value = lang;
+                select.addEventListener('change', function(e) {
+                    var key = e.target.value;
+                    localStorage.setItem('selectedLanguage', key);
+                    // Reload page to reinitialize with new language
+                    const url = new URL(window.location.href);
+                    url.searchParams.set('lang', key);
+                    window.location.href = url.toString();
+                });
+            }
+            
+            // Connect start button to game
+            var btn = document.getElementById('startTutorialBtn');
+            if (btn && window.startGame) {
+                btn.onclick = window.startGame;
+            }
+        });
+>>>>>>> c84c26feba0322eea9ad0d06a4c61b70e615f095
     </script>
     <script>
         // gameStarted and startGame are already declared in game.js

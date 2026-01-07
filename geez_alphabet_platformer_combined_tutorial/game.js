@@ -1,6 +1,13 @@
+<<<<<<< HEAD
 ﻿// Geez Alphabet Platformer - Combined Educational Game
+=======
+// Geez Alphabet Platformer - Backend-Secured Version
+>>>>>>> c84c26feba0322eea9ad0d06a4c61b70e615f095
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
+
+// Initialize Game API
+const gameAPI = new GameAPI();
 
 // Fullscreen responsive dimensions
 let SCREEN_WIDTH = window.innerWidth;
@@ -29,30 +36,31 @@ resizeCanvas();
 window.addEventListener('resize', resizeCanvas);
 
 // Start game function (called when continue button is clicked)
-function startGame() {
+async function startGame() {
     console.log('Start button clicked');
     const modal = document.getElementById('instructionsModal');
     if (modal) {
         modal.classList.add('hidden');
         modal.style.display = 'none';
     }
-    // Ensure translations are loaded and data initialized before starting
-    const attemptInit = () => {
-        if (initializeGameData()) {
-            gameStarted = true;
-            console.log('Game started successfully');
-            resizeCanvas();
-        } else {
-            console.log('Waiting for translations...');
-            setTimeout(attemptInit, 50);
-        }
-    };
-    attemptInit();
+    
+    try {
+        const lang = localStorage.getItem('selectedLanguage') || 'amharic';
+        await initializeGameData(lang);
+        gameStarted = true;
+        console.log('Game started successfully');
+        resizeCanvas();
+        pronounceWord();
+        setupStage();
+    } catch (error) {
+        console.error('Failed to start game:', error);
+        alert('Failed to connect to game server. Please refresh and try again.');
+    }
 }
 window.startGame = startGame;
 
-// Geez Alphabet Dictionary with pronunciations
-const GeezAlphabetDict = {
+// Geez Alphabet Dictionary - loaded from API
+let GeezAlphabetDict = {};
     // Note: 'eh' as in 'bed', 'ah' as in 'far', 'ee' as in 'see', 'ay' as in 'say', 'ih' as in 'pin'
     'ሀ': 'he', 'ሁ': 'hu', 'ሂ': 'hi', 'ሃ': 'ha', 'ሄ': 'hey', 'ህ': 'hih', 'ሆ': 'ho',
     'ለ': 'le', 'ሉ': 'lu', 'ሊ': 'li', 'ላ': 'la', 'ሌ': 'ley', 'ል': 'lih', 'ሎ': 'lo',
@@ -139,23 +147,6 @@ function loadWordImage(word) {
     };
 }
 
-// Build categories as stages (fewest words first) — deferred until translations are ready
-let categoriesMap = {};
-let categoriesOrder = [];
-function detectTranslationKey() {
-    try {
-        const keys = Object.keys(translations || {});
-        if (keys.length) {
-            const sample = translations[keys[0]];
-            for (const k of ['amharic','tigrinya','oromo','spanish']) {
-                if (sample && sample[k]) return k;
-            }
-        }
-    } catch (e) {}
-    return 'amharic';
-}
-const translationKey = detectTranslationKey();
-
 // Visual templates cycled across categories
 const visualPalette = [
     { name: 'Morning Sky', bgColor: '#87CEEB', coinColor: '#FFD700', platformColor: '#8B4513' },
@@ -165,38 +156,38 @@ const visualPalette = [
     { name: 'Ocean Dream', bgColor: '#006064', coinColor: '#FFD54F', platformColor: '#00838F' }
 ];
 let stageTemplates = [];
+let categoriesOrder = [];
 
 // Game variables
-let wordsToTranslate = [];
 let currentWord = '';
 let currentAmharic = '';
+let currentCategory = '';
 let collectedLetters = '';
-let currentStage = 0; // now indexes into categoriesOrder
+let currentStage = 0;
 let score = 0;
-// gameStarted is already declared at the top of the file
 let gameOver = false;
 let gameOverReason = '';
 let stageTimer = 0;
 let lastEnemySpawn = 0;
 let wordPronunciationComplete = false;
+let stageStartTime = 0;
 
 // Keyboard state
 const keys = {};
 
-function initializeGameData() {
-    if (categoriesOrder.length > 0) return true; // already initialized
-    if (!window.translations) {
-        console.warn('Translations not loaded yet; delaying init.');
-        return false;
-    }
-
-    categoriesMap = {};
-    Object.keys(translations).forEach(w => {
-        const cat = translations[w].category || 'uncategorized';
-        (categoriesMap[cat] ||= []).push(w);
-    });
-    categoriesOrder = Object.keys(categoriesMap).sort(() => Math.random() - 0.5);
-
+async function initializeGameData(language) {
+    // Initialize game session with backend
+    const session = await gameAPI.initGame('platformer-tutorial', language);
+    console.log('Session initialized:', session.sessionId);
+    
+    // Load alphabet for character rendering
+    const { alphabet } = await gameAPI.getAlphabet(language);
+    GeezAlphabetDict = alphabet;
+    
+    // Store categories order from server
+    categoriesOrder = session.categoriesOrder;
+    
+    // Create stage templates based on categories
     stageTemplates = categoriesOrder.map((cat, i) => ({
         name: `${cat[0].toUpperCase()}${cat.slice(1)}`,
         bgColor: visualPalette[i % visualPalette.length].bgColor,
@@ -204,12 +195,16 @@ function initializeGameData() {
         platformColor: visualPalette[i % visualPalette.length].platformColor,
         requiresOrder: i >= Math.floor(categoriesOrder.length / 2)
     }));
-
-    wordsToTranslate = categoriesMap[categoriesOrder[0]] || [];
-    currentWord = wordsToTranslate.length ? wordsToTranslate[Math.floor(Math.random() * wordsToTranslate.length)] : '';
-    currentAmharic = currentWord && translations[currentWord] ? translations[currentWord][translationKey] : '';
-
-    return true;
+    
+    // Get first word from server
+    const wordData = await gameAPI.getCurrentWord();
+    currentWord = wordData.word;
+    currentAmharic = wordData.translation;
+    currentCategory = wordData.category;
+    
+    stageStartTime = Date.now();
+    
+    console.log('First word loaded:', currentWord, '→', currentAmharic);
 }
 
 // Platform class
@@ -749,21 +744,35 @@ function setupStage() {
     player = new Player();
 }
 
-function advanceStage() {
-    currentStage++;
-    if (currentStage >= categoriesOrder.length) {
+async function advanceStage() {
+    try {
+        const result = await gameAPI.advanceStage();
+        
+        if (result.gameOver) {
+            gameOver = true;
+            gameOverReason = `Congratulations! Final Score: ${result.finalScore}`;
+            return;
+        }
+        
+        currentStage = result.newStage;
+        
+        // Get new word from server
+        const wordData = await gameAPI.getCurrentWord();
+        currentWord = wordData.word;
+        currentAmharic = wordData.translation;
+        currentCategory = wordData.category;
+        
+        collectedLetters = '';
+        wordPronunciationComplete = false;
+        stageStartTime = Date.now();
+        
+        pronounceWord();
+        setupStage();
+    } catch (error) {
+        console.error('Failed to advance stage:', error);
         gameOver = true;
-        gameOverReason = 'All categories completed!';
-        return;
+        gameOverReason = 'Connection error. Please refresh.';
     }
-    const cat = categoriesOrder[currentStage];
-    const words = categoriesMap[cat] || [];
-    currentWord = words.length ? words[Math.floor(Math.random() * words.length)] : '';
-    currentAmharic = currentWord && translations[currentWord] ? translations[currentWord][translationKey] : '';
-    collectedLetters = '';
-    wordPronunciationComplete = false;
-    pronounceWord();
-    setupStage();
 }
 
 function pronounceWord() {
@@ -779,10 +788,16 @@ function pronounceWord() {
     }
 }
 
-function restartGame() {
+async function restartGame() {
+    gameAPI.clearSession();
+    score = 0;
+    currentStage = 0;
+    collectedLetters = '';
     gameOver = false;
     gameOverReason = '';
-    collectedLetters = '';
+    
+    const lang = localStorage.getItem('selectedLanguage') || 'amharic';
+    await initializeGameData(lang);
     wordPronunciationComplete = false;
     pronounceWord();
     setupStage();
@@ -1176,14 +1191,39 @@ function gameLoop() {
 
     // Activate portal when all letters collected
     const allCollected = letters.every(l => l.collected);
-    portal.active = allCollected;
-    if (allCollected) {
-        console.log('All letters collected! Portal should be active at:', portal.x, portal.y);
+    
+    // Validate with server when word complete
+    if (allCollected && !portal.active) {
+        validateWordCompletion();
     }
+    
     if (portal.active && portal.checkCollision(player)) {
         console.log('Player entered portal!');
         advanceStage();
     }
+
+async function validateWordCompletion() {
+    const timeSpent = Date.now() - stageStartTime;
+    try {
+        const result = await gameAPI.completeWord(
+            currentWord,
+            collectedLetters,
+            timeSpent
+        );
+        
+        if (result.success) {
+            score = result.totalScore;
+            portal.active = true;
+            console.log('Word validated! Score earned:', result.scoreEarned);
+        } else {
+            console.error('Server rejected word completion');
+        }
+    } catch (error) {
+        console.error('Failed to validate word:', error);
+        // Still activate portal even on error to not block gameplay
+        portal.active = true;
+    }
+}
 
     // Draw
     drawBackground();

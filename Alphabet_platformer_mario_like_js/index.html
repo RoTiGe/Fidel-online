@@ -3,14 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="description" content="Classic Mario-style platformer game for learning Geez alphabet. Jump, run, and collect letters in this educational adventure game. Fun Fidel script learning for all ages.">
+    <meta name="keywords" content="alphabet platformer, Geez platform game, educational platformer, Mario-like alphabet game, Fidel adventure game, letter collection game">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://fidelgamesonline.com/Alphabet_platformer_mario_like_js/index.html">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#667eea">
-    <meta property="og:title" content="Alphabet Platformer - Fidel Games">
-    <meta property="og:description" content="Classic platformer action with alphabet collection mechanics">
-    <meta property="og:image" content="../../assets/platformer-thumbnail.png">
-    <title>🏃 Alphabet Platformer - Fidel Games</title>
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://fidelgamesonline.com/Alphabet_platformer_mario_like_js/index.html">
+    <meta property="og:title" content="Alphabet Platformer - Mario-Style Educational Game">
+    <meta property="og:description" content="Classic platformer action with alphabet collection mechanics. Learn Geez letters while playing.">
+    <meta property="og:image" content="https://fidelgamesonline.com/assets/platformer-thumbnail.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Alphabet Platformer Game">
+    <meta name="twitter:description" content="Mario-style platformer for learning Geez alphabet through gameplay">
+    <title>🏃 Alphabet Platformer - Mario-Style Geez Learning Game | Fidel Games</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         * {
@@ -38,7 +47,8 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            background: var(--dark-bg);
+            background: var(--dark-bg) url('/assets/buttonImages/f1.png') center/cover no-repeat;
+            background-blend-mode: overlay;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             -webkit-user-select: none;
             -moz-user-select: none;
@@ -465,36 +475,18 @@
     </div>
 
     <script>
-        (function() {
-            const params = new URLSearchParams(location.search);
-            const saved = localStorage.getItem('selectedLanguage');
-            const lang = params.get('lang') || saved || 'amharic';
-            const map = {
-                amharic: '/translations/amharic_translation.js',
-                tigrinya: '/translations/tigrigna_translation.js',
-                oromo: '/translations/Oromiffa_translations.js',
-                spanish: '/translations/spanish_translation.js'
-            };
-            const transSrc = map[lang] || map['amharic'];
-            const s1 = document.createElement('script');
-            s1.src = transSrc;
-            s1.onload = function() {
+        // Load centralized translations JSON
+        const s1 = document.createElement('script');
+        s1.src = '/js/load-translations.js';
+        s1.onload = function() {
+            // Wait for translations to load, then start game
+            window.addEventListener('translationsLoaded', function() {
                 const s2 = document.createElement('script');
                 s2.src = 'game.js';
                 document.body.appendChild(s2);
-            };
-            s1.onerror = function() {
-                const fallback = document.createElement('script');
-                fallback.src = map['amharic'];
-                fallback.onload = function() {
-                    const s2 = document.createElement('script');
-                    s2.src = 'game.js';
-                    document.body.appendChild(s2);
-                };
-                document.body.appendChild(fallback);
-            };
-            document.body.appendChild(s1);
-        })();
+            }, { once: true });
+        };
+        document.body.appendChild(s1);
     </script>
     <script>
         // Game State

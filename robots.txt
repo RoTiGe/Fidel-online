@@ -1,0 +1,16 @@
+# Robots.txt for Fidel Games Online
+# Allow all search engines to index the site
+
+User-agent: *
+Allow: /
+
+# Disallow crawling of server-side files
+Disallow: /server.js
+Disallow: /package.json
+Disallow: /node_modules/
+Disallow: /*.bat$
+Disallow: /*.ps1$
+Disallow: /*.md$
+
+# Sitemap location
+Sitemap: https://fidelgamesonline.com/sitemap.xml

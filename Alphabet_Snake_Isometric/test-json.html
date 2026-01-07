@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test JSON Loading</title>
+</head>
+<body>
+    <h1>Testing element-types.json</h1>
+    <div id="result"></div>
+    <script>
+        async function test() {
+            const resultDiv = document.getElementById('result');
+            try {
+                const response = await fetch('element-types.json');
+                resultDiv.innerHTML = `<p>Status: ${response.status}</p>`;
+                if (response.ok) {
+                    const data = await response.json();
+                    resultDiv.innerHTML += `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                } else {
+                    resultDiv.innerHTML += `<p style="color: red;">Failed to load: ${response.statusText}</p>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+            }
+        }
+        test();
+    </script>
+</body>
+</html>
+

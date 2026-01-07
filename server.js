@@ -18,6 +18,8 @@ app.use('/geez_alphabet_platformer_combined_tutorial', express.static(path.join(
 app.use('/geez_alphabet_game_js', express.static(path.join(__dirname, 'geez_alphabet_game_js')));
 app.use('/geez_alphabet_derder', express.static(path.join(__dirname, 'geez_alphabet_derder')));
 app.use('/Alphabet_platformer_mario_like_js', express.static(path.join(__dirname, 'Alphabet_platformer_mario_like_js')));
+app.use('/Alphabet_Isometric_js', express.static(path.join(__dirname, 'Alphabet_Isometric_js')));
+app.use('/Alphabet_Snake_Isometric', express.static(path.join(__dirname, 'Alphabet_Snake_Isometric')));
 // Serve centralized translations
 app.use('/translations', express.static(path.join(__dirname, 'translations')));
 

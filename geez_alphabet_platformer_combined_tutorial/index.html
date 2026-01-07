@@ -3,14 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="description" content="Beginner-friendly Geez alphabet platformer with visual hints and glowing letter indicators. Perfect tutorial mode for learning Fidel script through guided gameplay.">
+    <meta name="keywords" content="Geez tutorial game, beginner Fidel game, guided alphabet learning, visual hint platformer, beginner-friendly Amharic game">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://fidelgamesonline.com/geez_alphabet_platformer_combined_tutorial/index.html">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#667eea">
-    <meta property="og:title" content="Geez Platformer Tutorial - Fidel Games">
-    <meta property="og:description" content="Perfect for beginners! Visual hints show which letter to collect next">
-    <meta property="og:image" content="../../assets/tutorial-thumbnail.png">
-    <title>💡 Geez Platformer Tutorial - Fidel Games</title>
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://fidelgamesonline.com/geez_alphabet_platformer_combined_tutorial/index.html">
+    <meta property="og:title" content="Geez Platformer Tutorial - Beginner Mode with Visual Hints">
+    <meta property="og:description" content="Perfect for beginners! Visual hints show which letter to collect next with glowing animations. Learn Geez alphabet step by step.">
+    <meta property="og:image" content="https://fidelgamesonline.com/assets/tutorial-thumbnail.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Geez Platformer Tutorial Mode">
+    <meta name="twitter:description" content="Beginner-friendly platformer with visual hints for learning Geez alphabet">
+    <title>💡 Geez Platformer Tutorial - Beginner Mode | Fidel Games</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         * {
@@ -134,7 +143,8 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.95);
+            background: rgba(0, 0, 0, 0.95) url('/assets/buttonImages/p1.png') center/cover no-repeat;
+            background-blend-mode: darken;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -342,49 +352,12 @@
 
         // Dynamically load the selected translation and then the game script
         (function() {
-            const params = new URLSearchParams(location.search);
-            const saved = localStorage.getItem('selectedLanguage');
-            const lang = params.get('lang') || saved || 'amharic';
-            const map = {
-                amharic: '/translations/amharic_translation.js',
-                tigrinya: '/translations/tigrigna_translation.js',
-                oromo: '/translations/Oromiffa_translations.js',
-                spanish: '/translations/spanish_translation.js'
-            };
-            // Set selector value on DOMContentLoaded
-            document.addEventListener('DOMContentLoaded', function() {
-                var select = document.getElementById('languageSelect');
-                if (select) {
-                    select.value = lang;
-                    select.addEventListener('change', function(e) {
-                        var key = e.target.value;
-                        localStorage.setItem('selectedLanguage', key);
-                        // Reload with ?lang=key to ensure correct translation
-                        const url = new URL(window.location.href);
-                        url.searchParams.set('lang', key);
-                        window.location.href = url.toString();
-                    });
-                }
-            });
-            // Load translation and game script
-            const transSrc = map[lang] || map['amharic'];
+            // Load centralized translations JSON
             const s1 = document.createElement('script');
-            s1.src = transSrc;
+            s1.src = '/js/load-translations.js';
             s1.onload = function() {
-                const s2 = document.createElement('script');
-                s2.src = 'game.js';
-                s2.onload = function() {
-                    var btn = document.getElementById('startTutorialBtn');
-                    if (btn && window.startGame) {
-                        btn.onclick = window.startGame;
-                    }
-                };
-                document.body.appendChild(s2);
-            };
-            s1.onerror = function() {
-                const fallback = document.createElement('script');
-                fallback.src = map['amharic'];
-                fallback.onload = function() {
+                // Wait for translations to load, then start game
+                window.addEventListener('translationsLoaded', function() {
                     const s2 = document.createElement('script');
                     s2.src = 'game.js';
                     s2.onload = function() {
@@ -394,8 +367,7 @@
                         }
                     };
                     document.body.appendChild(s2);
-                };
-                document.body.appendChild(fallback);
+                }, { once: true });
             };
             document.body.appendChild(s1);
         })();

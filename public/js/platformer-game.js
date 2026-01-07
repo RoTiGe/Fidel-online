@@ -106,6 +106,27 @@ const wordImages = {};
 let currentWordImage = null;
 let imageLoadingError = false;
 
+// Player sprite sheet
+const playerSprite = new Image();
+playerSprite.src = '/assets/boy_spirit.png';
+let playerSpriteLoaded = false;
+playerSprite.onload = () => {
+    playerSpriteLoaded = true;
+    console.log('Player sprite loaded:', playerSprite.width, 'x', playerSprite.height);
+};
+playerSprite.onerror = () => {
+    console.warn('Failed to load player sprite, using fallback drawing');
+    playerSpriteLoaded = false;
+};
+
+// Sprite sheet configuration (assuming 8 frames wide on top row, 5 on bottom)
+// We'll calculate frame size when image loads
+const SPRITE_CONFIG = {
+    walkFrames: 8,    // Top row: 8 walking frames
+    jumpFrames: 5,    // Bottom row: 5 jump frames
+    rows: 2
+};
+
 // Load image for a word (local images only)
 function loadWordImage(word) {
     if (wordImages[word]) {
@@ -232,13 +253,15 @@ class Player {
     constructor(x, y) {
         this.x = x;
         this.y = y;
-        this.width = 40;
-        this.height = 60;
+        this.width = 80;
+        this.height = 120;
         this.velocityX = 0;
         this.velocityY = 0;
         this.isJumping = false;
         this.onGround = false;
         this.direction = 1;
+        this.animationFrame = 0;
+        this.animationTimer = 0;
     }
 
     update() {
@@ -262,6 +285,18 @@ class Player {
         if (keys['ArrowRight'] || keys['d'] || keys['D']) {
             this.velocityX = PLAYER_SPEED;
             this.direction = 1;
+        }
+        
+        // Update animation
+        if (this.velocityX !== 0 && this.onGround) {
+            this.animationTimer++;
+            if (this.animationTimer > 4) {
+                this.animationFrame = (this.animationFrame + 1) % SPRITE_CONFIG.walkFrames;
+                this.animationTimer = 0;
+            }
+        } else {
+            this.animationFrame = 0;
+            this.animationTimer = 0;
         }
         
         this.x += this.velocityX;
@@ -312,27 +347,185 @@ class Player {
     draw(camera) {
         const screenX = this.x - camera.x;
         
-        // Draw character
-        ctx.fillStyle = '#FF6B6B';
-        ctx.fillRect(screenX, this.y, this.width, this.height);
-        ctx.strokeStyle = '#C92A2A';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(screenX, this.y, this.width, this.height);
+        ctx.save();
         
-        // Eyes
-        ctx.fillStyle = 'white';
-        ctx.fillRect(screenX + 8, this.y + 15, 8, 8);
-        ctx.fillRect(screenX + 24, this.y + 15, 8, 8);
-        ctx.fillStyle = 'black';
-        ctx.fillRect(screenX + 11, this.y + 18, 3, 3);
-        ctx.fillRect(screenX + 27, this.y + 18, 3, 3);
+        // Use sprite sheet if loaded, otherwise fallback to procedural drawing
+        if (playerSpriteLoaded && playerSprite.width > 0) {
+            // Calculate frame dimensions
+            const frameWidth = playerSprite.width / SPRITE_CONFIG.walkFrames;
+            const frameHeight = playerSprite.height / SPRITE_CONFIG.rows;
+            
+            // Determine which row and frame to use
+            let row = 0;
+            let frame = 0;
+            
+            if (!this.onGround) {
+                // Jumping - use bottom row (row 1)
+                row = 1;
+                // Cycle through jump frames based on vertical velocity
+                if (this.velocityY < -8) {
+                    frame = 0; // Jump start
+                } else if (this.velocityY < -4) {
+                    frame = 1; // Rising
+                } else if (this.velocityY < 4) {
+                    frame = 2; // Peak
+                } else if (this.velocityY < 8) {
+                    frame = 3; // Falling
+                } else {
+                    frame = 4; // Landing
+                }
+            } else if (this.velocityX !== 0) {
+                // Walking - use top row (row 0)
+                row = 0;
+                frame = this.animationFrame;
+            } else {
+                // Standing still - first frame of walk cycle
+                row = 0;
+                frame = 0;
+            }
+            
+            // Calculate source position in sprite sheet
+            const sx = frame * frameWidth;
+            const sy = row * frameHeight;
+            
+            // Flip horizontally for left direction
+            if (this.direction === -1) {
+                ctx.translate(screenX + this.width, 0);
+                ctx.scale(-1, 1);
+                ctx.translate(-screenX - this.width, 0);
+            }
+            
+            // Draw the sprite frame with bottom cropping for realistic platform contact
+            const cropBottom = frameHeight * 0.2;
+            ctx.drawImage(
+                playerSprite,
+                sx, sy, frameWidth, frameHeight - cropBottom,  // Source: crop 20% from bottom
+                screenX, this.y, this.width, this.height  // Destination rectangle
+            );
+            
+        } else {
+            // FALLBACK: Procedural drawing (OLD CODE COMMENTED FOR REFERENCE)
+            /*
+            const centerX = screenX + this.width / 2;
+            const centerY = this.y + this.height / 2;
+            
+            // Flip horizontally based on direction
+            if (this.direction === -1) {
+                ctx.translate(screenX + this.width, 0);
+                ctx.scale(-1, 1);
+                ctx.translate(-screenX - this.width, 0);
+            }
+            
+            // Body (torso)
+            ctx.fillStyle = '#4A90E2';
+            ctx.beginPath();
+            ctx.ellipse(centerX, this.y + 28, 14, 18, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#2E5C8A';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Head
+            ctx.fillStyle = '#FFD1A3';
+            ctx.beginPath();
+            ctx.arc(centerX, this.y + 12, 10, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#D4A574';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+            
+            // Hair
+            ctx.fillStyle = '#3D2817';
+            ctx.beginPath();
+            ctx.arc(centerX, this.y + 8, 11, Math.PI, 0, true);
+            ctx.fill();
+            
+            // Eyes
+            ctx.fillStyle = 'white';
+            ctx.beginPath();
+            ctx.arc(centerX - 4, this.y + 11, 2.5, 0, Math.PI * 2);
+            ctx.arc(centerX + 4, this.y + 11, 2.5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = 'black';
+            ctx.beginPath();
+            ctx.arc(centerX - 4, this.y + 11, 1.2, 0, Math.PI * 2);
+            ctx.arc(centerX + 4, this.y + 11, 1.2, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Smile
+            ctx.strokeStyle = '#8B4513';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.arc(centerX, this.y + 15, 4, 0.2, Math.PI - 0.2);
+            ctx.stroke();
+            
+            // Arms - animated
+            const armSwing = this.onGround && this.velocityX !== 0 ? Math.sin(this.animationFrame * Math.PI / 2) * 15 : 0;
+            
+            // Left arm
+            ctx.strokeStyle = '#FFD1A3';
+            ctx.lineWidth = 4;
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            ctx.moveTo(centerX - 10, this.y + 26);
+            ctx.lineTo(centerX - 10, this.y + 36 + armSwing);
+            ctx.stroke();
+            
+            // Right arm
+            ctx.beginPath();
+            ctx.moveTo(centerX + 10, this.y + 26);
+            ctx.lineTo(centerX + 10, this.y + 36 - armSwing);
+            ctx.stroke();
+            
+            // Legs - animated running
+            let leftLegOffset = 0;
+            let rightLegOffset = 0;
+            
+            if (this.onGround && this.velocityX !== 0) {
+                // Running animation
+                const legAngle = Math.sin(this.animationFrame * Math.PI / 2) * 20;
+                leftLegOffset = legAngle;
+                rightLegOffset = -legAngle;
+            } else if (!this.onGround) {
+                // Jumping pose
+                leftLegOffset = -10;
+                rightLegOffset = -10;
+            }
+            
+            // Left leg
+            ctx.strokeStyle = '#2C5AA0';
+            ctx.lineWidth = 5;
+            ctx.beginPath();
+            ctx.moveTo(centerX - 6, this.y + 42);
+            ctx.lineTo(centerX - 6 + leftLegOffset * 0.3, this.y + 56);
+            ctx.stroke();
+            
+            // Right leg
+            ctx.beginPath();
+            ctx.moveTo(centerX + 6, this.y + 42);
+            ctx.lineTo(centerX + 6 + rightLegOffset * 0.3, this.y + 56);
+            ctx.stroke();
+            
+            // Feet
+            ctx.fillStyle = '#8B4513';
+            ctx.beginPath();
+            ctx.ellipse(centerX - 6 + leftLegOffset * 0.3, this.y + 58, 5, 3, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.ellipse(centerX + 6 + rightLegOffset * 0.3, this.y + 58, 5, 3, 0, 0, Math.PI * 2);
+            ctx.fill();
+            */
+            
+            // Simple placeholder while sprite loads
+            ctx.fillStyle = '#4A90E2';
+            ctx.fillRect(screenX, this.y, this.width, this.height);
+            ctx.fillStyle = 'white';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Loading...', screenX + this.width/2, this.y + this.height/2);
+        }
         
-        // Smile
-        ctx.strokeStyle = 'black';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(screenX + this.width / 2, this.y + 35, 10, 0, Math.PI);
-        ctx.stroke();
+        ctx.restore();
     }
 }
 
@@ -422,11 +615,13 @@ class Enemy {
         this.type = type;
         this.x = x;
         this.y = y;
-        this.width = 50;
+        this.width = 60;
         this.height = 50;
         this.speed = 3;
         this.direction = 1;
         this.velocityY = 0;
+        this.animationFrame = 0;
+        this.animationTimer = 0;
     }
 
     update(player) {
@@ -448,24 +643,298 @@ class Enemy {
         }
         
         this.x = Math.max(0, Math.min(WORLD_WIDTH - this.width, this.x));
+        
+        // Update animation
+        this.animationTimer++;
+        if (this.animationTimer > 6) {
+            this.animationFrame = (this.animationFrame + 1) % 4;
+            this.animationTimer = 0;
+        }
     }
 
     draw(camera) {
         const screenX = this.x - camera.x;
-        ctx.fillStyle = '#8B4513';
-        ctx.fillRect(screenX, this.y, this.width, this.height);
-        ctx.strokeStyle = 'black';
-        ctx.lineWidth = 3;
-        ctx.strokeRect(screenX, this.y, this.width, this.height);
+        const centerX = screenX + this.width / 2;
+        const centerY = this.y + this.height / 2;
         
-        ctx.fillStyle = 'white';
-        ctx.font = 'bold 12px Arial';
+        ctx.save();
+        
+        // Flip horizontally based on direction
+        if (this.direction === -1) {
+            ctx.translate(screenX + this.width, 0);
+            ctx.scale(-1, 1);
+            ctx.translate(-screenX - this.width, 0);
+        }
+        
+        // Draw different animals based on type
+        if (this.type === 'wolf' || this.type === 'dog') {
+            this.drawWolf(screenX, centerX, centerY);
+        } else if (this.type === 'bear') {
+            this.drawBear(screenX, centerX, centerY);
+        } else if (this.type === 'snake') {
+            this.drawSnake(screenX, centerX, centerY);
+        } else {
+            this.drawWolf(screenX, centerX, centerY); // default
+        }
+        
+        ctx.restore();
+        
+        // Danger warning above enemy
+        ctx.fillStyle = 'rgba(255, 0, 0, 0.8)';
+        ctx.font = 'bold 11px Arial';
         ctx.textAlign = 'center';
-        ctx.fillText(this.type.toUpperCase(), screenX + this.width / 2, this.y + this.height / 2);
+        ctx.fillText('⚠', screenX + this.width / 2, this.y - 8);
+    }
+    
+    drawWolf(screenX, centerX, centerY) {
+        const legSwing = Math.sin(this.animationFrame * Math.PI / 2) * 12;
         
+        // Body
+        ctx.fillStyle = '#6B5B4C';
+        ctx.beginPath();
+        ctx.ellipse(centerX, centerY + 5, 28, 16, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#4A3F35';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // Head
+        ctx.fillStyle = '#6B5B4C';
+        ctx.beginPath();
+        ctx.ellipse(centerX + 22, centerY - 5, 12, 11, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        
+        // Snout
+        ctx.fillStyle = '#8B7969';
+        ctx.beginPath();
+        ctx.ellipse(centerX + 30, centerY - 2, 7, 5, 0, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Nose
+        ctx.fillStyle = 'black';
+        ctx.beginPath();
+        ctx.arc(centerX + 34, centerY - 3, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Eye
+        ctx.fillStyle = 'yellow';
+        ctx.beginPath();
+        ctx.arc(centerX + 26, centerY - 8, 3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = 'black';
+        ctx.beginPath();
+        ctx.arc(centerX + 27, centerY - 8, 1.5, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Ears
+        ctx.fillStyle = '#6B5B4C';
+        ctx.beginPath();
+        ctx.moveTo(centerX + 18, centerY - 14);
+        ctx.lineTo(centerX + 16, centerY - 20);
+        ctx.lineTo(centerX + 22, centerY - 16);
+        ctx.fill();
+        ctx.stroke();
+        
+        ctx.beginPath();
+        ctx.moveTo(centerX + 28, centerY - 14);
+        ctx.lineTo(centerX + 26, centerY - 19);
+        ctx.lineTo(centerX + 32, centerY - 15);
+        ctx.fill();
+        ctx.stroke();
+        
+        // Tail
+        ctx.strokeStyle = '#6B5B4C';
+        ctx.lineWidth = 5;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        const tailWag = Math.sin(this.animationFrame * Math.PI / 2) * 8;
+        ctx.moveTo(centerX - 24, centerY);
+        ctx.quadraticCurveTo(centerX - 30, centerY - 10 + tailWag, centerX - 28, centerY - 18 + tailWag);
+        ctx.stroke();
+        
+        // Legs - animated
+        ctx.strokeStyle = '#6B5B4C';
+        ctx.lineWidth = 4;
+        
+        // Front left leg
+        ctx.beginPath();
+        ctx.moveTo(centerX + 12, centerY + 16);
+        ctx.lineTo(centerX + 12 + legSwing * 0.3, centerY + 30);
+        ctx.stroke();
+        
+        // Front right leg
+        ctx.beginPath();
+        ctx.moveTo(centerX + 20, centerY + 16);
+        ctx.lineTo(centerX + 20 - legSwing * 0.3, centerY + 30);
+        ctx.stroke();
+        
+        // Back left leg
+        ctx.beginPath();
+        ctx.moveTo(centerX - 10, centerY + 16);
+        ctx.lineTo(centerX - 10 - legSwing * 0.3, centerY + 30);
+        ctx.stroke();
+        
+        // Back right leg
+        ctx.beginPath();
+        ctx.moveTo(centerX - 2, centerY + 16);
+        ctx.lineTo(centerX - 2 + legSwing * 0.3, centerY + 30);
+        ctx.stroke();
+        
+        // Paws
+        ctx.fillStyle = '#4A3F35';
+        ctx.beginPath();
+        ctx.ellipse(centerX + 12 + legSwing * 0.3, centerY + 32, 3, 2, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(centerX + 20 - legSwing * 0.3, centerY + 32, 3, 2, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(centerX - 10 - legSwing * 0.3, centerY + 32, 3, 2, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(centerX - 2 + legSwing * 0.3, centerY + 32, 3, 2, 0, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    
+    drawBear(screenX, centerX, centerY) {
+        const legSwing = Math.sin(this.animationFrame * Math.PI / 2) * 10;
+        
+        // Body (larger)
+        ctx.fillStyle = '#8B5A3C';
+        ctx.beginPath();
+        ctx.ellipse(centerX, centerY + 8, 32, 20, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#654321';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // Head
+        ctx.fillStyle = '#8B5A3C';
+        ctx.beginPath();
+        ctx.ellipse(centerX + 20, centerY - 8, 15, 14, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        
+        // Snout
+        ctx.fillStyle = '#A0826D';
+        ctx.beginPath();
+        ctx.ellipse(centerX + 28, centerY - 3, 8, 7, 0, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Nose
+        ctx.fillStyle = 'black';
+        ctx.beginPath();
+        ctx.arc(centerX + 32, centerY - 4, 3, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Eyes
+        ctx.fillStyle = 'black';
+        ctx.beginPath();
+        ctx.arc(centerX + 22, centerY - 12, 3, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Ears (rounded)
+        ctx.fillStyle = '#8B5A3C';
+        ctx.beginPath();
+        ctx.arc(centerX + 14, centerY - 18, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        
+        ctx.beginPath();
+        ctx.arc(centerX + 28, centerY - 18, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        
+        // Thick legs
+        ctx.strokeStyle = '#8B5A3C';
+        ctx.lineWidth = 7;
+        ctx.lineCap = 'round';
+        
+        ctx.beginPath();
+        ctx.moveTo(centerX + 14, centerY + 22);
+        ctx.lineTo(centerX + 14 + legSwing * 0.2, centerY + 34);
+        ctx.stroke();
+        
+        ctx.beginPath();
+        ctx.moveTo(centerX + 22, centerY + 22);
+        ctx.lineTo(centerX + 22 - legSwing * 0.2, centerY + 34);
+        ctx.stroke();
+        
+        ctx.beginPath();
+        ctx.moveTo(centerX - 12, centerY + 22);
+        ctx.lineTo(centerX - 12 - legSwing * 0.2, centerY + 34);
+        ctx.stroke();
+        
+        ctx.beginPath();
+        ctx.moveTo(centerX - 4, centerY + 22);
+        ctx.lineTo(centerX - 4 + legSwing * 0.2, centerY + 34);
+        ctx.stroke();
+    }
+    
+    drawSnake(screenX, centerX, centerY) {
+        const waveOffset = this.animationFrame * Math.PI / 4;
+        
+        // Snake body with sinusoidal wave
+        ctx.strokeStyle = '#228B22';
+        ctx.lineWidth = 10;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        
+        ctx.beginPath();
+        const segments = 8;
+        for (let i = 0; i < segments; i++) {
+            const x = centerX - 28 + (i * 7);
+            const y = centerY + 15 + Math.sin(i * 0.8 + waveOffset) * 8;
+            if (i === 0) {
+                ctx.moveTo(x, y);
+            } else {
+                ctx.lineTo(x, y);
+            }
+        }
+        ctx.stroke();
+        
+        // Snake head
+        ctx.fillStyle = '#2E8B57';
+        ctx.beginPath();
+        ctx.ellipse(centerX + 22, centerY + 15, 9, 7, 0.2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#1C5C3A';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // Eyes
         ctx.fillStyle = 'red';
-        ctx.font = 'bold 10px Arial';
-        ctx.fillText('DANGER!', screenX + this.width / 2, this.y - 5);
+        ctx.beginPath();
+        ctx.arc(centerX + 24, centerY + 12, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = 'black';
+        ctx.beginPath();
+        ctx.arc(centerX + 24, centerY + 12, 1, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Forked tongue
+        ctx.strokeStyle = 'red';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        const tongueFlicker = this.animationFrame % 2 === 0 ? 6 : 4;
+        ctx.moveTo(centerX + 28, centerY + 16);
+        ctx.lineTo(centerX + 28 + tongueFlicker, centerY + 16);
+        ctx.moveTo(centerX + 28 + tongueFlicker, centerY + 16);
+        ctx.lineTo(centerX + 28 + tongueFlicker + 2, centerY + 14);
+        ctx.moveTo(centerX + 28 + tongueFlicker, centerY + 16);
+        ctx.lineTo(centerX + 28 + tongueFlicker + 2, centerY + 18);
+        ctx.stroke();
+        
+        // Pattern on body
+        ctx.fillStyle = 'rgba(0, 100, 0, 0.5)';
+        for (let i = 0; i < segments - 1; i++) {
+            const x = centerX - 24 + (i * 7);
+            const y = centerY + 15 + Math.sin(i * 0.8 + waveOffset) * 8;
+            ctx.beginPath();
+            ctx.arc(x, y, 3, 0, Math.PI * 2);
+            ctx.fill();
+        }
     }
 
     checkCollision(player) {
@@ -1049,14 +1518,18 @@ canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
 canvas.addEventListener('click', (event) => {
     if (gameOver) {
         const rect = canvas.getBoundingClientRect();
-        const clickX = event.clientX - rect.left;
-        const clickY = event.clientY - rect.top;
+        // Scale click coordinates to match canvas internal size
+        const clickX = (event.clientX - rect.left) * (SCREEN_WIDTH / rect.width);
+        const clickY = (event.clientY - rect.top) * (SCREEN_HEIGHT / rect.height);
         const buttonX = SCREEN_WIDTH / 2 - 100;
         const buttonY = SCREEN_HEIGHT / 2 + 60;
         
         if (clickX >= buttonX && clickX <= buttonX + 200 &&
             clickY >= buttonY && clickY <= buttonY + 50) {
             restartGame();
+            // Restart game loop and show modal again
+            gameStarted = false;
+            document.getElementById('instructionsModal').classList.remove('hidden');
         }
     }
 });
@@ -1073,6 +1546,9 @@ canvas.addEventListener('touchend', (event) => {
         if (touchX >= buttonX && touchX <= buttonX + 200 &&
             touchY >= buttonY && touchY <= buttonY + 50) {
             restartGame();
+            // Restart game loop and show modal again
+            gameStarted = false;
+            document.getElementById('instructionsModal').classList.remove('hidden');
         }
     }
 }, { passive: false });

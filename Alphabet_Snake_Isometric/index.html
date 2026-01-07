@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#667eea">
+    <meta property="og:title" content="Snake Isometric Adventure - Fidel Games">
+    <meta property="og:description" content="Control a growing snake through an isometric world with terrain-based speeds">
+    <meta property="og:image" content="../../assets/platformer-thumbnail.png">
+    <title>🐍 Snake Isometric Adventure - Fidel Games</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --success-color: #6BCF7F;
+            --warning-color: #FFD93D;
+            --danger-color: #FF6B35;
+            --dark-bg: #1a1a2e;
+            --light-text: #ffffff;
+            --safe-area-inset-top: env(safe-area-inset-top, 0);
+            --safe-area-inset-bottom: env(safe-area-inset-bottom, 0);
+        }
+
+        body {
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, var(--dark-bg) 0%, #1a472a 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: none;
+        }
+
+        #gameContainer {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #gameCanvas {
+            display: block;
+            width: 100%;
+            height: calc(100vh - 60px);
+            touch-action: none;
+            margin-top: 60px;
+        }
+
+        /* HUD Overlay */
+        .hud-overlay {
+            position: fixed;
+            top: var(--safe-area-inset-top);
+            left: 0;
+            right: 0;
+            padding: 10px 15px;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(5px);
+        }
+
+        .home-button, .pause-button, .leaderboard-button {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: var(--light-text);
+            border: none;
+            padding: 10px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .home-button:hover, .pause-button:hover, .leaderboard-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        /* Level Info */
+        .level-info {
+            position: fixed;
+            top: calc(var(--safe-area-inset-top) + 60px);
+            left: 15px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 12px 16px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            z-index: 99;
+            min-width: 200px;
+            max-width: 250px;
+        }
+
+        .level-name {
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 6px;
+        }
+
+        .level-progress {
+            font-size: 12px;
+            color: #666;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* Score Display */
+        .score-display {
+            position: fixed;
+            top: calc(var(--safe-area-inset-top) + 60px);
+            right: 15px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 12px 16px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            z-index: 99;
+            text-align: right;
+        }
+
+        /* Power-up Status */
+        .powerup-status {
+            position: fixed;
+            top: calc(var(--safe-area-inset-top) + 220px);
+            right: 15px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px;
+            border-radius: 10px;
+            z-index: 99;
+            min-width: 120px;
+            display: none;
+        }
+
+        .powerup-status.active {
+            display: block;
+        }
+
+        .powerup-item {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+            color: white;
+            font-size: 14px;
+        }
+
+        .powerup-icon {
+            font-size: 20px;
+            margin-right: 8px;
+        }
+
+        /* Minimap */
+        .minimap {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            width: 200px;
+            height: 150px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            z-index: 99;
+        }
+
+        .score-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .score-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--warning-color);
+        }
+
+        /* Zoom Control */
+        .zoom-control {
+            position: fixed;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px 12px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            z-index: 99;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .zoom-label {
+            font-size: 12px;
+            font-weight: bold;
+            color: var(--primary-color);
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+        }
+
+        .zoom-slider {
+            width: 250px;
+            height: 8px;
+            writing-mode: vertical-lr;
+            direction: rtl;
+            cursor: pointer;
+            outline: none;
+            background: linear-gradient(to bottom, rgba(102, 126, 234, 0.3), rgba(102, 126, 234, 0.1));
+            border-radius: 4px;
+            border: 1px solid rgba(102, 126, 234, 0.4);
+        }
+
+        .zoom-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 30px;
+            height: 16px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            cursor: pointer;
+            border-radius: 3px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        .zoom-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
+        }
+
+        .zoom-slider::-moz-range-thumb {
+            width: 30px;
+            height: 16px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            cursor: pointer;
+            border-radius: 3px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+            border: none;
+            transition: all 0.2s ease;
+        }
+
+        .zoom-slider::-moz-range-thumb:hover {
+            transform: scale(1.1);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
+        }
+
+        .zoom-value {
+            font-size: 14px;
+            font-weight: bold;
+            color: #666;
+        }
+
+        /* Mobile Controls */
+        .mobile-controls {
+            position: fixed;
+            bottom: var(--safe-area-inset-bottom);
+            left: 0;
+            right: 0;
+            padding: 15px;
+            display: none;
+            gap: 10px;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(5px);
+        }
+
+        .mobile-controls.visible {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .control-button {
+            padding: 15px;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: var(--light-text);
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            transition: transform 0.1s ease;
+        }
+
+        .control-button:active {
+            transform: scale(0.95);
+        }
+
+        /* Instructions Modal */
+        .instructions-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+            padding: 20px;
+            padding-top: var(--safe-area-inset-top);
+            padding-bottom: var(--safe-area-inset-bottom);
+        }
+
+        .instructions-content {
+            background: linear-gradient(135deg, #FFFFFF 0%, #FFF9E6 100%);
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 600px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            border: 4px solid var(--primary-color);
+        }
+
+        .instructions-content h2 {
+            color: var(--primary-color);
+            font-size: 28px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .instructions-content p {
+            color: #2C3E50;
+            line-height: 1.8;
+            margin: 10px 0;
+            font-size: 16px;
+        }
+
+        .instructions-content ul {
+            margin-left: 20px;
+            color: #2C3E50;
+        }
+
+        .instructions-content li {
+            margin: 8px 0;
+        }
+
+        .continue-button {
+            background: linear-gradient(135deg, var(--success-color) 0%, #45a049 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 30px;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            display: block;
+            margin: 20px auto 0;
+            box-shadow: 0 5px 20px rgba(107, 207, 127, 0.4);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .continue-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(107, 207, 127, 0.6);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Accessibility */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* Mobile Optimization */
+        @media (max-width: 768px) {
+            .level-info {
+                top: calc(var(--safe-area-inset-top) + 50px);
+                min-width: 160px;
+                max-width: 200px;
+                padding: 8px 10px;
+                font-size: 11px;
+            }
+
+            .score-display {
+                top: calc(var(--safe-area-inset-top) + 50px);
+                padding: 8px 10px;
+            }
+
+            .score-value {
+                font-size: 18px;
+            }
+
+            .zoom-control {
+                right: 10px;
+                padding: 10px 8px;
+            }
+
+            .zoom-slider {
+                height: 150px;
+            }
+
+            .mobile-controls.visible {
+                display: grid;
+            }
+
+            .instructions-content {
+                padding: 20px;
+                max-width: 95%;
+            }
+
+            .instructions-content h2 {
+                font-size: 22px;
+            }
+
+            .instructions-content p {
+                font-size: 14px;
+            }
+
+            .continue-button {
+                padding: 12px 30px;
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <!-- HUD Overlay -->
+        <div class="hud-overlay">
+            <div class="container-fluid">
+                <div class="row align-items-center">
+                    <div class="col-auto">
+                        <a href="/" target="_top" class="home-button" aria-label="Return to home">🏠 Home</a>
+                        <button class="pause-button ms-2" id="pauseButton" onclick="togglePause()" aria-label="Pause game" title="Pause the game">⏸ Pause</button>
+                    </div>
+                    <div class="col text-end">
+                        <a href="/" target="_top" class="leaderboard-button" aria-label="Return to home for scores" title="View game selection">🏆 Games</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Level Info -->
+        <div class="level-info" role="status" aria-live="polite">
+            <div class="level-name" id="levelName">Loading...</div>
+            <div class="level-progress">
+                <span aria-label="Letters collected">Letters: <span id="letterCount">0</span>/<span id="totalLetters">7</span></span>
+                <span id="difficulty">Isometric Mode</span>
+            </div>
+        </div>
+
+        <!-- Score Display -->
+        <div class="score-display">
+            <div class="score-label">Score</div>
+            <div class="score-value" id="score">0</div>
+            <div class="score-label" style="margin-top: 8px;">Snake Length</div>
+            <div class="score-value" id="segments" style="font-size: 18px; color: #00FF00;">5</div>
+        </div>
+
+        <!-- Power-up Status -->
+        <div class="powerup-status" id="powerupStatus">
+            <div class="powerup-item" id="speedBoostStatus" style="display: none;">
+                <span class="powerup-icon">⚡</span>
+                <span id="speedBoostTime">0s</span>
+            </div>
+            <div class="powerup-item" id="invincibilityStatus" style="display: none;">
+                <span class="powerup-icon">🛡️</span>
+                <span id="invincibilityTime">0s</span>
+            </div>
+        </div>
+
+        <!-- Minimap -->
+        <canvas class="minimap" id="minimap" width="200" height="150"></canvas>
+
+        <!-- Zoom Control -->
+        <div class="zoom-control" role="group" aria-label="Zoom control">
+            <div class="zoom-label" aria-hidden="true">ZOOM</div>
+            <input type="range" class="zoom-slider" id="zoomSlider" min="20" max="80" value="40"
+                   aria-label="Zoom level" aria-valuemin="50" aria-valuemax="200" aria-valuenow="100">
+            <div class="zoom-value" id="zoomValue" aria-live="polite">100%</div>
+        </div>
+
+        <!-- Game Canvas -->
+        <canvas id="gameCanvas"></canvas>
+
+        <!-- Mobile Controls -->
+        <div class="mobile-controls" id="mobileControls">
+            <button class="control-button" id="upLeftBtn" aria-label="Move up-left">↖</button>
+            <button class="control-button" id="upRightBtn" aria-label="Move up-right">↗</button>
+            <button class="control-button" id="climbBtn" aria-label="Climb">🧗 Climb</button>
+            <button class="control-button" id="downLeftBtn" aria-label="Move down-left">↙</button>
+            <button class="control-button" id="downRightBtn" aria-label="Move down-right">↘</button>
+            <button class="control-button" id="jumpBtn" style="grid-column: 3;" aria-label="Jump Down">⬇️ Jump</button>
+        </div>
+    </div>
+
+    <!-- Instructions Modal -->
+    <div id="instructionsModal" class="instructions-modal">
+        <div class="instructions-content">
+            <h2>🐍 Snake Isometric Adventure</h2>
+            <p>Control a growing snake through an isometric world with terrain-based movement!</p>
+
+            <p><strong>How to Play:</strong></p>
+            <ul>
+                <li>🎯 Collect Geez alphabet letters to grow your snake</li>
+                <li>🧗 Climb trees and walls to reach high platforms</li>
+                <li>🏃 Experience different speeds on various terrains</li>
+                <li>📉 Jump down from platforms (but not up!)</li>
+            </ul>
+
+            <p style="margin-top: 15px;"><strong>Controls:</strong></p>
+            <ul>
+                <li>⌨️ <strong>Arrow Keys or WASD:</strong> Move snake in 4 isometric directions</li>
+                <li>🧗 <strong>C Key:</strong> Hold to climb when near trees or walls</li>
+                <li>⬇️ <strong>Space:</strong> Jump down from platforms</li>
+                <li>📱 <strong>Mobile:</strong> Use on-screen buttons</li>
+            </ul>
+
+            <p style="margin-top: 15px;"><strong>Terrain Types:</strong></p>
+            <ul>
+                <li>🟢 <strong>Grass:</strong> Slow movement</li>
+                <li>🟤 <strong>Ground:</strong> Normal speed</li>
+                <li>⬜ <strong>Concrete:</strong> Fast movement</li>
+                <li>🔵 <strong>Water:</strong> Very slow movement</li>
+            </ul>
+
+            <p style="margin-top: 15px; color: #FF6B35; font-weight: bold;">💡 Tip: Use climbing to reach elevated platforms and plan your path based on terrain!</p>
+
+            <button class="continue-button" onclick="startGame()">Play Now! 🎮</button>
+        </div>
+    </div>
+
+    <!-- Load game.js directly -->
+    <script src="game.js"></script>
+
+    <script>
+        // Translations are embedded in game.js - no external loading needed
+        console.log('✅ Game initialized with embedded translations');
+    </script>
+    <script>
+        // Detect mobile
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        if (isMobile) {
+            const mobileControls = document.getElementById('mobileControls');
+            if (mobileControls) {
+                mobileControls.classList.add('visible');
+            }
+        }
+    </script>
+</body>
+</html>

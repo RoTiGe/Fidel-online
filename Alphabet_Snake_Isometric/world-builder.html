@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Isometric World Builder</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #2C3E50;
+            color: white;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        .sidebar {
+            width: 300px;
+            background: #34495E;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .canvas-container {
+            flex: 1;
+            position: relative;
+            background: #ECF0F1;
+        }
+
+        #worldCanvas {
+            display: block;
+            cursor: crosshair;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            color: #3498DB;
+        }
+
+        .tool-section {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #4A5F7F;
+        }
+
+        .tool-button {
+            width: 100%;
+            padding: 12px;
+            margin: 5px 0;
+            background: #3498DB;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .tool-button:hover {
+            background: #2980B9;
+            transform: translateY(-2px);
+        }
+
+        .tool-button.active {
+            background: #27AE60;
+        }
+
+        .input-group {
+            margin: 10px 0;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 12px;
+            color: #BDC3C7;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 8px;
+            border: none;
+            border-radius: 3px;
+            background: #2C3E50;
+            color: white;
+        }
+
+        .action-button {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            background: #E74C3C;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .action-button.success {
+            background: #27AE60;
+        }
+
+        .action-button.warning {
+            background: #F39C12;
+        }
+
+        .object-list {
+            max-height: 200px;
+            overflow-y: auto;
+            background: #2C3E50;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        .object-item {
+            padding: 8px;
+            margin: 5px 0;
+            background: #34495E;
+            border-radius: 3px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+        }
+
+        .object-item button {
+            padding: 4px 8px;
+            background: #E74C3C;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+
+        .info-panel {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            font-size: 12px;
+        }
+
+        .grid-toggle {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .tool-category {
+            margin-bottom: 15px;
+        }
+
+        .tool-category h4 {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h2>🎨 World Builder</h2>
+
+            <div class="tool-section">
+                <h3>World Settings</h3>
+                <div class="input-group">
+                    <label>World ID</label>
+                    <input type="number" id="worldId" value="1">
+                </div>
+                <div class="input-group">
+                    <label>World Name</label>
+                    <input type="text" id="worldName" value="My Custom World">
+                </div>
+                <div class="input-group">
+                    <label>Player Start X</label>
+                    <input type="number" id="playerX" value="200">
+                </div>
+                <div class="input-group">
+                    <label>Player Start Y</label>
+                    <input type="number" id="playerY" value="200">
+                </div>
+            </div>
+
+            <div class="tool-section">
+                <h3>Current Tool: <span id="currentTool">Platform</span></h3>
+                <button class="action-button" id="freePlaceToggle" onclick="toggleFreePlace()">🔒 Grid Snap: ON</button>
+            </div>
+
+            <div class="tool-section">
+                <h3>Tools</h3>
+                <div id="toolsContainer">
+                    <!-- Tools will be loaded from element-types.json -->
+                </div>
+            </div>
+
+            <div class="tool-section">
+                <h3>Properties</h3>
+                <div id="propertiesPanel">
+                    <!-- Properties will be dynamically loaded based on selected tool -->
+                </div>
+            </div>
+
+            <div class="tool-section">
+                <h3>Objects (<span id="objectCount">0</span>)</h3>
+                <div class="object-list" id="objectList"></div>
+            </div>
+
+            <div class="tool-section">
+                <button class="action-button success" onclick="exportWorld()">💾 Export JSON</button>
+                <button class="action-button warning" onclick="loadFromFile()">📂 Load JSON</button>
+                <button class="action-button" onclick="clearAll()">🗑️ Clear All</button>
+            </div>
+        </div>
+
+        <div class="canvas-container">
+            <button class="grid-toggle" onclick="toggleGrid()">Toggle Grid</button>
+            <div class="info-panel">
+                <div>Mouse: <strong id="mousePos">0, 0</strong></div>
+                <div>Zoom: <strong id="zoomLevel">100%</strong></div>
+                <div style="margin-top: 8px; font-size: 10px; color: #aaa;">
+                    🖱️ Left-click: Place | Right-drag: Pan | Wheel: Zoom
+                </div>
+            </div>
+            <canvas id="worldCanvas"></canvas>
+        </div>
+    </div>
+
+    <input type="file" id="fileInput" accept=".json" style="display: none;" onchange="handleFileLoad(event)">
+
+    <script src="world-builder.js"></script>
+</body>
+</html>

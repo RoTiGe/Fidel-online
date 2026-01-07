@@ -1,4 +1,4 @@
-// Geez Alphabet Platformer - Combined Educational Game
+﻿// Geez Alphabet Platformer - Combined Educational Game
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
@@ -68,8 +68,18 @@ const GeezAlphabetDict = {
     'ኀ': 'he', 'ኁ': 'hu', 'ኂ': 'hi', 'ኃ': 'ha', 'ኄ': 'hey', 'ኅ': 'hih', 'ኆ': 'ho',
     'ነ': 'ne', 'ኑ': 'nu', 'ኒ': 'ni', 'ና': 'na', 'ኔ': 'ney', 'ን': 'nih', 'ኖ': 'no',
     'አ': 'ah', 'ኡ': 'u', 'ኢ': 'i', 'ኣ': 'aa', 'ኤ': 'ay', 'እ': 'ih', 'ኦ': 'o',
- 'ጻ': 'ts’a', 'ጼ': 'ts’ey', 'ጽ': 'ts’ih', 'ጾ': 'ts’o',
-    'ፀ': 'ts’e', 'ፁ': 'ts’u', 'ፂ': 'ts’i', 'ፃ': 'ts’a', 'ፄ': 'ts’ey', 'ፅ': 'ts’ih', 'ፆ': 'ts’o',
+    'ከ': 'ke', 'ኩ': 'ku', 'ኪ': 'ki', 'ካ': 'ka', 'ኬ': 'key', 'ክ': 'kih', 'ኮ': 'ko',
+    'ወ': 'we', 'ዉ': 'wu', 'ዊ': 'wi', 'ዋ': 'wa', 'ዌ': 'wey', 'ው': 'wih', 'ዎ': 'wo',
+    'ዐ': 'ah', 'ዑ': 'u', 'ዒ': 'i', 'ዓ': 'aa', 'ዔ': 'ay', 'ዕ': 'ih', 'ዖ': 'o',
+    'ዘ': 'ze', 'ዙ': 'zu', 'ዚ': 'zi', 'ዛ': 'za', 'ዜ': 'zey', 'ዝ': 'zih', 'ዞ': 'zo',
+    'የ': 'ye', 'ዩ': 'yu', 'ዪ': 'yi', 'ያ': 'ya', 'ዬ': 'yey', 'ይ': 'yih', 'ዮ': 'yo',
+    'ደ': 'de', 'ዱ': 'du', 'ዲ': 'di', 'ዳ': 'da', 'ዴ': 'dey', 'ድ': 'dih', 'ዶ': 'do',
+    'ጀ': 'je', 'ጁ': 'ju', 'ጂ': 'ji', 'ጃ': 'ja', 'ጄ': 'jey', 'ጅ': 'jih', 'ጆ': 'jo',
+    'ገ': 'ge', 'ጉ': 'gu', 'ጊ': 'gi', 'ጋ': 'ga', 'ጌ': 'gey', 'ግ': 'gih', 'ጎ': 'go',
+    'ጠ': "t'e", 'ጡ': "t'u", 'ጢ': "t'i", 'ጣ': "t'a", 'ጤ': "t'ey", 'ጥ': "t'ih", 'ጦ': "t'o",
+    'ጨ': "ch'e", 'ጩ': "ch'u", 'ጪ': "ch'i", 'ጫ': "ch'a", 'ጬ': "ch'ey", 'ጭ': "ch'ih", 'ጮ': "ch'o",
+    'ጰ': "p'e", 'ጱ': "p'u", 'ጲ': "p'i", 'ጳ': "p'a", 'ጴ': "p'ey", 'ጵ': "p'ih", 'ጶ': "p'o",
+    'ጸ': "ts'e", 'ጹ': "ts'u", 'ጺ': "ts'i", 'ጻ': "ts'a", 'ጼ': "ts'ey", 'ጽ': "ts'ih", 'ጾ': "ts'o",
     'ፈ': 'fe', 'ፉ': 'fu', 'ፊ': 'fi', 'ፋ': 'fa', 'ፌ': 'fey', 'ፍ': 'fih', 'ፎ': 'fo',
     'ፐ': 'pe', 'ፑ': 'pu', 'ፒ': 'pi', 'ፓ': 'pa', 'ፔ': 'pey', 'ፕ': 'pih', 'ፖ': 'po'
 };
@@ -79,6 +89,26 @@ const GeezAlphabetDict = {
 const wordImages = {};
 let currentWordImage = null;
 let imageLoadingError = false;
+
+// Player sprite sheet
+const playerSprite = new Image();
+playerSprite.src = '/assets/boy_spirit.png';
+let playerSpriteLoaded = false;
+playerSprite.onload = () => {
+    playerSpriteLoaded = true;
+    console.log('Player sprite loaded:', playerSprite.width, 'x', playerSprite.height);
+};
+playerSprite.onerror = () => {
+    console.warn('Failed to load player sprite, using fallback drawing');
+    playerSpriteLoaded = false;
+};
+
+// Sprite sheet configuration (8 frames walking, 5 frames jumping)
+const SPRITE_CONFIG = {
+    walkFrames: 8,
+    jumpFrames: 5,
+    rows: 2
+};
 
 // Load image for a word (local images only)
 function loadWordImage(word) {
@@ -206,11 +236,14 @@ class Player {
     constructor() {
         this.x = 100;
         this.y = SCREEN_HEIGHT - 200;
-        this.width = 40;
-        this.height = 60;
+        this.width = 80;
+        this.height = 120;
         this.vx = 0;
         this.vy = 0;
         this.onGround = false;
+        this.direction = 1;
+        this.animationFrame = 0;
+        this.animationTimer = 0;
     }
     jump() {
         if (this.onGround) {
@@ -221,8 +254,26 @@ class Player {
     update(platforms) {
         // Horizontal input
         this.vx = 0;
-        if (keys['ArrowLeft'] || keys['a'] || keys['A']) this.vx = -PLAYER_SPEED;
-        if (keys['ArrowRight'] || keys['d'] || keys['D']) this.vx = PLAYER_SPEED;
+        if (keys['ArrowLeft'] || keys['a'] || keys['A']) {
+            this.vx = -PLAYER_SPEED;
+            this.direction = -1;
+        }
+        if (keys['ArrowRight'] || keys['d'] || keys['D']) {
+            this.vx = PLAYER_SPEED;
+            this.direction = 1;
+        }
+        
+        // Update animation
+        if (this.vx !== 0 && this.onGround) {
+            this.animationTimer++;
+            if (this.animationTimer > 4) {
+                this.animationFrame = (this.animationFrame + 1) % SPRITE_CONFIG.walkFrames;
+                this.animationTimer = 0;
+            }
+        } else {
+            this.animationFrame = 0;
+            this.animationTimer = 0;
+        }
 
         // Store previous position for collision detection
         const prevY = this.y;
@@ -254,11 +305,212 @@ class Player {
     }
     draw(camera) {
         const screenX = this.x - camera.x;
-        ctx.fillStyle = '#1976D2';
-        ctx.fillRect(screenX, this.y, this.width, this.height);
-        ctx.strokeStyle = '#0D47A1';
-        ctx.lineWidth = 3;
-        ctx.strokeRect(screenX, this.y, this.width, this.height);
+        
+        ctx.save();
+        
+        // Use sprite sheet if loaded
+        if (playerSpriteLoaded && playerSprite.width > 0) {
+            const frameWidth = playerSprite.width / SPRITE_CONFIG.walkFrames;
+            const frameHeight = playerSprite.height / SPRITE_CONFIG.rows;
+            
+            let row = 0;
+            let frame = 0;
+            
+            if (!this.onGround) {
+                // Jumping - bottom row
+                row = 1;
+                if (this.vy < -8) {
+                    frame = 0;
+                } else if (this.vy < -4) {
+                    frame = 1;
+                } else if (this.vy < 4) {
+                    frame = 2;
+                } else if (this.vy < 8) {
+                    frame = 3;
+                } else {
+                    frame = 4;
+                }
+            } else if (this.vx !== 0) {
+                // Walking - top row
+                row = 0;
+                frame = this.animationFrame;
+            } else {
+                // Standing
+                row = 0;
+                frame = 0;
+            }
+            
+            const sx = frame * frameWidth;
+            const sy = row * frameHeight;
+            
+            if (this.direction === -1) {
+                ctx.translate(screenX + this.width, 0);
+                ctx.scale(-1, 1);
+                ctx.translate(-screenX - this.width, 0);
+            }
+            
+            // Draw with bottom cropping for realistic platform contact
+            const cropBottom = frameHeight * 0.2;
+            ctx.drawImage(
+                playerSprite,
+                sx, sy, frameWidth, frameHeight - cropBottom,
+                screenX, this.y, this.width, this.height
+            );
+            
+        } else {
+            // Fallback: old procedural drawing (commented)
+            /*
+            const centerX = screenX + this.width / 2;
+            const centerY = this.y + this.height / 2;
+            
+            if (this.direction === -1) {
+                ctx.translate(screenX + this.width, 0);
+                ctx.scale(-1, 1);
+                ctx.translate(-screenX - this.width, 0);
+            }
+            
+            // Body
+            ctx.fillStyle = '#4A90E2';
+            ctx.beginPath();
+            ctx.ellipse(centerX, this.y + 28, 14, 18, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#2E5C8A';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Head
+            ctx.fillStyle = '#FFD1A3';
+            ctx.beginPath();
+            ctx.arc(centerX, this.y + 12, 10, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#D4A574';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+            
+            // Hair
+            ctx.fillStyle = '#3D2817';
+            ctx.beginPath();
+            ctx.arc(centerX, this.y + 8, 11, Math.PI, 0, true);
+            ctx.fill();
+            
+            // Eyes, arms, legs, etc...
+            */
+            
+            // Simple placeholder
+            ctx.fillStyle = '#4A90E2';
+            ctx.fillRect(screenX, this.y, this.width, this.height);
+            ctx.fillStyle = 'white';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Loading...', screenX + this.width/2, this.y + this.height/2);
+        }
+        
+        ctx.restore();
+    }
+            ctx.scale(-1, 1);
+            ctx.translate(-screenX - this.width, 0);
+        }
+        
+        // Body (torso)
+        ctx.fillStyle = '#4A90E2';
+        ctx.beginPath();
+        ctx.ellipse(centerX, this.y + 28, 14, 18, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#2E5C8A';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // Head
+        ctx.fillStyle = '#FFD1A3';
+        ctx.beginPath();
+        ctx.arc(centerX, this.y + 12, 10, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#D4A574';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        
+        // Hair
+        ctx.fillStyle = '#3D2817';
+        ctx.beginPath();
+        ctx.arc(centerX, this.y + 8, 11, Math.PI, 0, true);
+        ctx.fill();
+        
+        // Eyes
+        ctx.fillStyle = 'white';
+        ctx.beginPath();
+        ctx.arc(centerX - 4, this.y + 11, 2.5, 0, Math.PI * 2);
+        ctx.arc(centerX + 4, this.y + 11, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = 'black';
+        ctx.beginPath();
+        ctx.arc(centerX - 4, this.y + 11, 1.2, 0, Math.PI * 2);
+        ctx.arc(centerX + 4, this.y + 11, 1.2, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Smile
+        ctx.strokeStyle = '#8B4513';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(centerX, this.y + 15, 4, 0.2, Math.PI - 0.2);
+        ctx.stroke();
+        
+        // Arms - animated
+        const armSwing = this.onGround && this.vx !== 0 ? Math.sin(this.animationFrame * Math.PI / 2) * 15 : 0;
+        
+        // Left arm
+        ctx.strokeStyle = '#FFD1A3';
+        ctx.lineWidth = 4;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(centerX - 10, this.y + 26);
+        ctx.lineTo(centerX - 10, this.y + 36 + armSwing);
+        ctx.stroke();
+        
+        // Right arm
+        ctx.beginPath();
+        ctx.moveTo(centerX + 10, this.y + 26);
+        ctx.lineTo(centerX + 10, this.y + 36 - armSwing);
+        ctx.stroke();
+        
+        // Legs - animated running
+        let leftLegOffset = 0;
+        let rightLegOffset = 0;
+        
+        if (this.onGround && this.vx !== 0) {
+            // Running animation
+            const legAngle = Math.sin(this.animationFrame * Math.PI / 2) * 20;
+            leftLegOffset = legAngle;
+            rightLegOffset = -legAngle;
+        } else if (!this.onGround) {
+            // Jumping pose
+            leftLegOffset = -10;
+            rightLegOffset = -10;
+        }
+        
+        // Left leg
+        ctx.strokeStyle = '#2C5AA0';
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.moveTo(centerX - 6, this.y + 42);
+        ctx.lineTo(centerX - 6 + leftLegOffset * 0.3, this.y + 56);
+        ctx.stroke();
+        
+        // Right leg
+        ctx.beginPath();
+        ctx.moveTo(centerX + 6, this.y + 42);
+        ctx.lineTo(centerX + 6 + rightLegOffset * 0.3, this.y + 56);
+        ctx.stroke();
+        
+        // Feet
+        ctx.fillStyle = '#8B4513';
+        ctx.beginPath();
+        ctx.ellipse(centerX - 6 + leftLegOffset * 0.3, this.y + 58, 5, 3, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(centerX + 6 + rightLegOffset * 0.3, this.y + 58, 5, 3, 0, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.restore();
     }
 }
 

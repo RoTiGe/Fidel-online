@@ -1,0 +1,86 @@
+{
+  "elementTypes": [
+    {
+      "id": "platform",
+      "name": "Platform",
+      "icon": "🟫",
+      "category": "structures",
+      "gridSnap": true,
+      "snapSize": 50,
+      "properties": {
+        "width": { "type": "number", "default": 100, "min": 50, "max": 500, "label": "Width" },
+        "depth": { "type": "number", "default": 100, "min": 50, "max": 500, "label": "Depth" },
+        "height": { "type": "number", "default": 60, "min": 0, "max": 200, "label": "Height" },
+        "moving": { "type": "boolean", "default": false, "label": "Moving" },
+        "moveSpeed": { "type": "number", "default": 2, "min": 0.5, "max": 10, "step": 0.1, "label": "Move Speed", "showIf": "moving" },
+        "moveRange": { "type": "number", "default": 100, "min": 50, "max": 500, "label": "Move Range", "showIf": "moving" }
+      }
+    },
+    {
+      "id": "tree",
+      "name": "Tree",
+      "icon": "🌲",
+      "category": "decorations",
+      "gridSnap": false,
+      "snapSize": 10,
+      "properties": {}
+    },
+    {
+      "id": "wall",
+      "name": "Wall",
+      "icon": "🧱",
+      "category": "structures",
+      "gridSnap": true,
+      "snapSize": 50,
+      "properties": {
+        "width": { "type": "number", "default": 100, "min": 30, "max": 500, "label": "Width" },
+        "depth": { "type": "number", "default": 30, "min": 30, "max": 500, "label": "Depth" }
+      }
+    },
+    {
+      "id": "letter",
+      "name": "Letter/Coin",
+      "icon": "💎",
+      "category": "collectibles",
+      "gridSnap": false,
+      "snapSize": 10,
+      "properties": {
+        "z": { "type": "number", "default": 50, "min": 0, "max": 200, "label": "Z-Height" }
+      }
+    },
+    {
+      "id": "lion",
+      "name": "Lion Enemy",
+      "icon": "🦁",
+      "category": "enemies",
+      "gridSnap": false,
+      "snapSize": 10,
+      "properties": {}
+    },
+    {
+      "id": "ape",
+      "name": "Ape Enemy",
+      "icon": "🦍",
+      "category": "enemies",
+      "gridSnap": false,
+      "snapSize": 10,
+      "properties": {}
+    },
+    {
+      "id": "horse",
+      "name": "Horse Enemy",
+      "icon": "🐴",
+      "category": "enemies",
+      "gridSnap": false,
+      "snapSize": 10,
+      "properties": {}
+    }
+  ],
+  "categories": [
+    { "id": "structures", "name": "Structures", "color": "#8D6E63" },
+    { "id": "decorations", "name": "Decorations", "color": "#66BB6A" },
+    { "id": "collectibles", "name": "Collectibles", "color": "#FFD700" },
+    { "id": "enemies", "name": "Enemies", "color": "#FF5252" }
+  ]
+}
+

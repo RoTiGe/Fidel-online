@@ -3,14 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="description" content="Drag and drop Geez letters to spell words correctly. Interactive Fidel alphabet spelling game with visual feedback and pronunciation. Perfect for learning letter sequences.">
+    <meta name="keywords" content="Geez spelling game, drag and drop alphabet, Fidel letter game, Amharic spelling, interactive spelling, touch-friendly learning">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://fidelgamesonline.com/geez_alphabet_derder/index.html">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#667eea">
-    <meta property="og:title" content="Geez Alphabet Derder - Fidel Games">
-    <meta property="og:description" content="Drag and drop letters to spell words in the correct order">
-    <meta property="og:image" content="../../assets/derder-thumbnail.png">
-    <title>🎯 Geez Alphabet Derder - Fidel Games</title>
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://fidelgamesonline.com/geez_alphabet_derder/index.html">
+    <meta property="og:title" content="Geez Alphabet Derder - Drag & Drop Spelling Game">
+    <meta property="og:description" content="Drag and drop letters to spell words in the correct order. Interactive Fidel alphabet learning game.">
+    <meta property="og:image" content="https://fidelgamesonline.com/assets/derder-thumbnail.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Geez Alphabet Derder - Spelling Game">
+    <meta name="twitter:description" content="Interactive drag and drop game for learning Geez alphabet spelling">
+    <title>🎯 Geez Alphabet Derder - Drag & Drop Spelling Game | Fidel Games</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
@@ -127,7 +136,8 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.95);
+            background: rgba(0, 0, 0, 0.95) url('/assets/buttonImages/derder1.png') center/cover no-repeat;
+            background-blend-mode: darken;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -345,37 +355,18 @@
             detectDeviceAndCustomizeUI();
         }
 
-        // Dynamically load the selected translation and then the game script
-        (function() {
-            const params = new URLSearchParams(location.search);
-            const saved = localStorage.getItem('selectedLanguage');
-            const lang = params.get('lang') || saved || 'amharic';
-            const map = {
-                amharic: '/translations/amharic_translation.js',
-                tigrinya: '/translations/tigrigna_translation.js',
-                oromo: '/translations/Oromiffa_translations.js',
-                spanish: '/translations/spanish_translation.js'
-            };
-            const transSrc = map[lang] || map['amharic'];
-            const s1 = document.createElement('script');
-            s1.src = transSrc;
-            s1.onload = function() {
+        // Load centralized translations JSON
+        const s1 = document.createElement('script');
+        s1.src = '/js/load-translations.js';
+        s1.onload = function() {
+            // Wait for translations to load, then start game
+            window.addEventListener('translationsLoaded', function() {
                 const s2 = document.createElement('script');
                 s2.src = 'game.js';
                 document.body.appendChild(s2);
-            };
-            s1.onerror = function() {
-                const fallback = document.createElement('script');
-                fallback.src = map['amharic'];
-                fallback.onload = function() {
-                    const s2 = document.createElement('script');
-                    s2.src = 'game.js';
-                    document.body.appendChild(s2);
-                };
-                document.body.appendChild(fallback);
-            };
-            document.body.appendChild(s1);
-        })();
+            }, { once: true });
+        };
+        document.body.appendChild(s1);
     </script>
     <script>
         // gameStarted is already declared in game.js

@@ -71,49 +71,36 @@ const GeezAlphabetDict = {
     'ፐ': 'pe', 'ፑ': 'pu', 'ፒ': 'pi', 'ፓ': 'pa', 'ፔ': 'pey', 'ፕ': 'pih', 'ፖ': 'po'
 };
 
-const translations = {
-    "breakfast": { "amharic": "ቁርስ", "phonetic": "q'oors", "category": "food" },
-    "hello": { "amharic": "ሀሎ", "phonetic": "hal-lo", "category": "basics" },
-    "world": { "amharic": "ዓለም", "phonetic": "ah-lem", "category": "nature" },
-    "computer": { "amharic": "ኮምፒውተር", "phonetic": "kom-pyu-ter", "category": "objects" },
-    "book": { "amharic": "መጽሐፍ", "phonetic": "mets-haf", "category": "objects" },
-    "friend": { "amharic": "ጓደኛ", "phonetic": "gwah-den-yah", "category": "people" },
-    "water": { "amharic": "ውሃ", "phonetic": "wu-ha", "category": "nature" },
-    "sun": { "amharic": "ፀሐይ", "phonetic": "tse-hai", "category": "nature" },
-    "moon": { "amharic": "ጨረቃ", "phonetic": "ch'er-eh-q'ah", "category": "nature" },
-    "tree": { "amharic": "ዛፍ", "phonetic": "zahf", "category": "nature" },
-    "flower": { "amharic": "አበባ", "phonetic": "ah-beh-bah", "category": "nature" },
-    "lunch": { "amharic": "ምሳ", "phonetic": "mi-sah", "category": "food" },
-    "dinner": { "amharic": "እራት", "phonetic": "eh-raht", "category": "food" },
-    "mother": { "amharic": "እናት", "phonetic": "en-naht", "category": "family" },
-    "father": { "amharic": "አባት", "phonetic": "ah-baht", "category": "family" },
-    "sister": { "amharic": "እህት", "phonetic": "eh-hit", "category": "family" },
-    "brother": { "amharic": "ወንድም", "phonetic": "wen-dim", "category": "family" },
-    "uncle": { "amharic": "አጎት", "phonetic": "ah-goht", "category": "family" },
-    "aunt": { "amharic": "አክስት", "phonetic": "ah-kist", "category": "family" },
-    "grandmother": { "amharic": "አያት", "phonetic": "ah-yaht", "category": "family" },
-    "grandfather": { "amharic": "አያት", "phonetic": "ah-yaht", "category": "family" }
-};
-
-// Prefer centralized translations loaded via /translations/amharic_translation.js
-function getTranslations() {
-    return (typeof window !== 'undefined' && window.translations) ? window.translations : translations;
+// Using centralized translations from /translations/amharic_translation.js
+// Detect selected translation key dynamically
+function detectTranslationKey() {
+    try {
+        const keys = Object.keys(translations || {});
+        if (keys.length) {
+            const sample = translations[keys[0]];
+            for (const k of ['amharic','tigrinya','oromo','spanish']) {
+                if (sample && sample[k]) return k;
+            }
+        }
+    } catch (e) {}
+    return 'amharic';
 }
+const translationKey = detectTranslationKey();
 
 // Game variables
-// Categories as stages (fewest words first)
+// Categories as stages (randomized order)
 const categoriesMap = {};
-Object.keys(getTranslations()).forEach(w => {
-    const cat = getTranslations()[w].category || 'uncategorized';
+Object.keys(translations).forEach(w => {
+    const cat = translations[w].category || 'uncategorized';
     (categoriesMap[cat] ||= []).push(w);
 });
-const categoriesOrder = Object.keys(categoriesMap).sort((a,b) => categoriesMap[a].length - categoriesMap[b].length);
+const categoriesOrder = Object.keys(categoriesMap).sort(() => Math.random() - 0.5);
 let currentCategoryIndex = 0;
 let currentCategory = categoriesOrder[currentCategoryIndex];
 let completedWordsSet = new Set();
 let wordsToTranslate = categoriesMap[currentCategory];
 let currentWord = wordsToTranslate[Math.floor(Math.random() * wordsToTranslate.length)];
-let currentAmharic = getTranslations()[currentWord].amharic;
+let currentAmharic = translations[currentWord][translationKey];
 let score = 0;
 let draggedLetter = null;
 let mouseX = 0;
@@ -366,7 +353,7 @@ function completeWord() {
     // Get new word from remaining
     const pool = categoriesMap[currentCategory].filter(w => !completedWordsSet.has(w));
     currentWord = pool[Math.floor(Math.random() * pool.length)];
-    currentAmharic = getTranslations()[currentWord].amharic;
+    currentAmharic = translations[currentWord][translationKey];
     initializeLetters();
 }
 
@@ -380,7 +367,7 @@ function restartGame() {
     currentStage = 1;
     gameOver = false;
     currentWord = wordsToTranslate[Math.floor(Math.random() * wordsToTranslate.length)];
-    currentAmharic = getTranslations()[currentWord].amharic;
+    currentAmharic = translations[currentWord][translationKey];
     initializeLetters();
 }
 
@@ -607,7 +594,7 @@ function gameLoop() {
         ctx.fillText('Spell: ' + currentWord, WIDTH / 2, 30);
         ctx.fillStyle = BLACK;
         ctx.font = '18px Arial';
-        ctx.fillText('(' + getTranslations()[currentWord].phonetic + ')', WIDTH / 2, 55);
+        ctx.fillText('(' + translations[currentWord].phonetic + ')', WIDTH / 2, 55);
         
         // Draw drop zone
         drawDropZone();

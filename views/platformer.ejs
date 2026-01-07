@@ -119,7 +119,8 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.95);
+            background: rgba(0, 0, 0, 0.95) url('/assets/buttonImages/p2.png') center/cover no-repeat;
+            background-blend-mode: darken;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -333,31 +334,16 @@
                 return valid.indexOf(chosen) !== -1 ? chosen : 'amharic';
             }
 
-            var map = {
-                amharic: '/translations/amharic_translation.js',
-                tigrinya: '/translations/tigrigna_translation.js',
-                oromo: '/translations/Oromiffa_translations.js',
-                spanish: '/translations/spanish_translation.js'
-            };
-
-            var lang = getSelectedLang();
+            // Load centralized translations JSON
             var t = document.createElement('script');
-            t.src = map[lang] || map['amharic'];
+            t.src = '/js/load-translations.js';
             t.onload = function() {
-                var g = document.createElement('script');
-                g.src = '/js/platformer-game.js';
-                document.body.appendChild(g);
-            };
-            t.onerror = function() {
-                console.warn('Translation load failed; falling back to Amharic');
-                var fb = document.createElement('script');
-                fb.src = map['amharic'];
-                fb.onload = function() {
+                // Wait for translations to load, then start game
+                window.addEventListener('translationsLoaded', function() {
                     var g = document.createElement('script');
                     g.src = '/js/platformer-game.js';
                     document.body.appendChild(g);
-                };
-                document.body.appendChild(fb);
+                }, { once: true });
             };
             document.body.appendChild(t);
         })();

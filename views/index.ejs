@@ -30,34 +30,127 @@
         }
 
         .games-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 25px;
             margin-top: 40px;
+            justify-content: center;
+            align-items: flex-start;
         }
 
         .game-card {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 15px;
-            padding: 40px 30px;
+            border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
             transition: all 0.3s ease;
             text-align: center;
             cursor: pointer;
             text-decoration: none;
-            display: block;
-            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-size: cover;
+            background-position: center;
+            background-blend-mode: overlay;
+            position: relative;
+            overflow: hidden;
         }
 
-        .game-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        .game-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(102, 126, 234, 0.6);
+            border-radius: 20px;
+            z-index: 1;
+            transition: background 0.3s ease;
+        }
+
+        .game-card:hover::before {
+            background: rgba(102, 126, 234, 0.4);
         }
 
         .game-card h2 {
-            color: white;
+            position: relative;
+            z-index: 2;
             margin: 0;
+            padding: 20px;
+            font-weight: bold;
+            text-shadow: 2px 2px 6px rgba(0,0,0,0.5);
+        }
+
+        /* Randomized sizes with aspect ratio preservation */
+        .game-card.mario {
+            background-image: url('/assets/buttonImages/f1.png');
+            width: 380px;
+            height: 280px;
+        }
+
+        .game-card.mario h2 {
+            color: #FFD700;
+            font-size: 2.2em;
+        }
+
+        .game-card.platformer-tutorial {
+            background-image: url('/assets/buttonImages/p1.png');
+            width: 320px;
+            height: 240px;
+        }
+
+        .game-card.platformer-tutorial h2 {
+            color: #4ECDC4;
+            font-size: 1.8em;
+        }
+
+        .game-card.platformer {
+            background-image: url('/assets/buttonImages/p2.png');
+            width: 420px;
+            height: 260px;
+        }
+
+        .game-card.platformer h2 {
+            color: #FF6B9D;
             font-size: 2em;
+        }
+
+        .game-card.alphabet {
+            background-image: url('/assets/buttonImages/p3.png');
+            width: 340px;
+            height: 220px;
+        }
+
+        .game-card.alphabet h2 {
+            color: #95E1D3;
+            font-size: 1.9em;
+        }
+
+        .game-card.derder {
+            background-image: url('/assets/buttonImages/derder1.png');
+            width: 360px;
+            height: 270px;
+        }
+
+        .game-card.derder h2 {
+            color: #FFA07A;
+            font-size: 2.1em;
+        }
+
+        .game-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 45px rgba(0,0,0,0.35);
+        }
+
+        @media (max-width: 768px) {
+            .game-card {
+                width: 100% !important;
+                height: 200px !important;
+            }
+            .game-card h2 {
+                font-size: 1.6em !important;
+            }
         }
 
         .features {
@@ -81,10 +174,11 @@
         }
 
         .features li {
-            background: rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.9);
             padding: 20px;
             border-radius: 10px;
             text-align: center;
+            color: #333;
         }
     </style>
 </head>
@@ -98,23 +192,23 @@
         </div>
 
         <div class="games-grid">
-            <a href="/mario-platformer" class="game-card">
+            <a href="/mario-platformer" class="game-card mario">
                 <h2>🌟 AbuGida</h2>
             </a>
 
-            <a href="/platformer-tutorial" class="game-card">
+            <a href="/platformer-tutorial" class="game-card platformer-tutorial">
                 <h2>📚 Platformer Tutorial</h2>
             </a>
 
-            <a href="/platformer" class="game-card">
+            <a href="/platformer" class="game-card platformer">
                 <h2>🏃 Platformer Game</h2>
             </a>
 
-            <a href="/alphabet-game" class="game-card">
+            <a href="/alphabet-game" class="game-card alphabet">
                 <h2>🔤 Alphabet Game</h2>
             </a>
 
-            <a href="/derder" class="game-card">
+            <a href="/derder" class="game-card derder">
                 <h2>🎯 Derder Game</h2>
             </a>
         </div>

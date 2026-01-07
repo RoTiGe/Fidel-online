@@ -3,14 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="description" content="Interactive Geez alphabet learning game with word translation challenges, letter-by-letter pronunciation, and visual associations. Learn Fidel script through gamified education.">
+    <meta name="keywords" content="Geez alphabet learning, Fidel script game, Amharic alphabet, Ethiopian alphabet tutorial, interactive learning, word translation game">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://fidelgamesonline.com/geez_alphabet_game_js/index.html">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#FF6B9D">
-    <meta property="og:title" content="Geez Alphabet Learning Game">
-    <meta property="og:description" content="Learn the Geez alphabet through interactive word translation and letter recognition">
-    <meta property="og:image" content="../../assets/game-thumbnail.png">
-    <title>📚 Geez Alphabet Learning - Fidel Games</title>
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://fidelgamesonline.com/geez_alphabet_game_js/index.html">
+    <meta property="og:title" content="Geez Alphabet Learning Game - Interactive Fidel Script Tutorial">
+    <meta property="og:description" content="Learn the Geez alphabet through interactive word translation and letter recognition. Free educational game.">
+    <meta property="og:image" content="https://fidelgamesonline.com/assets/game-thumbnail.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Geez Alphabet Learning Game">
+    <meta name="twitter:description" content="Learn Geez alphabet through interactive word translation and letter recognition">
+    <title>📚 Geez Alphabet Learning - Interactive Fidel Script Game | Fidel Games</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         * {
@@ -38,8 +47,8 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            background: linear-gradient(135deg, #FF6B9D 0%, #FFA07A 25%, #FFD93D 50%, #6BCF7F 75%, #4ECDC4 100%);
-            background-size: 400% 400%;
+            background: linear-gradient(135deg, rgba(255, 107, 157, 0.8) 0%, rgba(255, 160, 122, 0.8) 25%, rgba(255, 217, 61, 0.8) 50%, rgba(107, 207, 127, 0.8) 75%, rgba(78, 205, 196, 0.8) 100%), url('/assets/buttonImages/p3.png') center/cover no-repeat;
+            background-size: 400% 400%, cover;
             animation: gradientFlow 15s ease infinite;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
@@ -449,38 +458,18 @@
             detectDeviceAndCustomizeUI();
         }
 
-        // Dynamically load the selected translation and then the game script
-        (function() {
-            const params = new URLSearchParams(location.search);
-            const saved = localStorage.getItem('selectedLanguage');
-            const lang = params.get('lang') || saved || 'amharic';
-            const map = {
-                amharic: '/translations/amharic_translation.js',
-                tigrinya: '/translations/tigrigna_translation.js',
-                oromo: '/translations/Oromiffa_translations.js',
-                spanish: '/translations/spanish_translation.js'
-            };
-            const transSrc = map[lang] || map['amharic'];
-            const s1 = document.createElement('script');
-            s1.src = transSrc;
-            s1.onload = function() {
+        // Load centralized translations JSON
+        const s1 = document.createElement('script');
+        s1.src = '/js/load-translations.js';
+        s1.onload = function() {
+            // Wait for translations to load, then start game
+            window.addEventListener('translationsLoaded', function() {
                 const s2 = document.createElement('script');
                 s2.src = 'game.js';
                 document.body.appendChild(s2);
-            };
-            s1.onerror = function() {
-                // Fallback to Amharic if selected file fails to load
-                const fallback = document.createElement('script');
-                fallback.src = map['amharic'];
-                fallback.onload = function() {
-                    const s2 = document.createElement('script');
-                    s2.src = 'game.js';
-                    document.body.appendChild(s2);
-                };
-                document.body.appendChild(fallback);
-            };
-            document.body.appendChild(s1);
-        })();
+            }, { once: true });
+        };
+        document.body.appendChild(s1);
     </script>
     <script>
         // startGame is already defined in game.js
